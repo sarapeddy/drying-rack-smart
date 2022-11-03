@@ -11,7 +11,7 @@ Progetto del corso di IOT che mira alla realizzazione di uno stendino smart in g
 - led / buzzer / schermo lcd
 - modulo bluetooth
 
-## Com'è strutturato il progetto a livello fisico e organizzativo
+## Requisiti di progetto
 - L'arduino deve essere in grado di rilevare i parametri esterni tramite i trasduttori sopracitati per fornire indicazioni utili sui tempi di asciugatura degli abiti
 - L'Arduino deve essere in grado di inviare i dati ottenuti tramite bluetooth al dispositivo che funge da computer
 - il computer deve essere connesso a internet per consentire l'invio dei dati sul cloud
