@@ -18,3 +18,8 @@ Progetto del corso di IOT che mira alla realizzazione di uno stendino smart in g
 - Lato utente sarà tutto gestito tramite un'applicazione per dispositivi mobile o installata direttamente sul pc, ma che sia in grado di connettersi a Internet
 - il computer deve essere in grado di elaborare i dati e metterli a disposizione delle altre persone con lo scopo di creare delle statistiche per incentivare l'ecologia e un utilizzo ottimizzato della lavatrice
 - l'applicazione, grazie alla consultazione di api riguardanti il meteo, deve fornire indicazioni sulla possibilità e rischi di stendere fuori
+- Effettuare il login/logout da parte degli utenti
+- L'Arduino deve essere in grado di segnalare quando un abito è asciutto tramite led/notifica/buzzer
+- Vedere se introdurre il controllo su stendini vicini (GPS o statico al momento della registrazione)
+- Introdurre targetizzazione sugli abiti in modo da avere dati più precisi sui tempi e temperatura di asciugatorua
+- Implementare documentazione tramite swagger delle API
