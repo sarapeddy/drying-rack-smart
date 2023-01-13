@@ -23,3 +23,6 @@ Progetto del corso di IOT che mira alla realizzazione di uno stendino smart in g
 - Vedere se introdurre il controllo su stendini vicini (GPS o statico al momento della registrazione)
 - Introdurre targetizzazione sugli abiti in modo da avere dati più precisi sui tempi e temperatura di asciugatorua
 - Implementare documentazione tramite swagger delle API
+
+## Arduino
+- **DHT11**: come libreria importare DHTlib di Rob Tillaart.
