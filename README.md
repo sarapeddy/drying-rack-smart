@@ -25,4 +25,9 @@ Progetto del corso di IOT che mira alla realizzazione di uno stendino smart in g
 - Implementare documentazione tramite swagger delle API
 
 ## Arduino
-- **DHT11**: come libreria importare DHTlib di Rob Tillaart.
+
+Qui il [link](https://www.tinkercad.com/things/hZl0u94ahFn-drying-rack-smart/editel?sharecode=D3SCMsZ7Jgg0KzsocBVNS1I2N93rQOPSl80nIKx_3Zo) al progetto ThinkerCad con l'inserimento dei sensori che ci sono. ALcuni non sono disponibili, ma sono indicati i pin occupati.
+
+- **DHT11**: come libreria importare DHTlib di Rob Tillaart. PIN DIGITALE 2
+- **Capacitive Moisture Soil Sensor**: serve il pin analogico e quindi non ha bisogno di librerie per funzionare. AO
+
