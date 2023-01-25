@@ -7,6 +7,7 @@ Progetto del corso di IOT che mira alla realizzazione di uno stendino smart in g
 - sensore di temperatura
 - sensore di umidità dell'aria
 - sensore umidità del terreno
+- sensore di pressione
 - breadboard
 - led / buzzer / schermo lcd
 - modulo bluetooth
@@ -30,4 +31,5 @@ Qui il [link](https://www.tinkercad.com/things/hZl0u94ahFn-drying-rack-smart/edi
 
 - **DHT11**: come libreria importare DHTlib di Rob Tillaart. PIN DIGITALE 2
 - **Capacitive Moisture Soil Sensor**: serve il pin analogico e quindi non ha bisogno di librerie per funzionare. AO
+- **Force Sensitive Resistor**: serve il pin analogico A1
 
