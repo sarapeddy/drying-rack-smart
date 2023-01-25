@@ -4,8 +4,15 @@
 #define DHT11_PIN 2
 #define MOISTURESENSOR A0
 
+struct json {
+  float humidity;
+  float temperature;
+  int moisture_soil_perc;
+};
+
 Timer t = Timer();
 dht DHT;
+json data;
 
 void setup(){
   Serial.begin(9600);
@@ -17,6 +24,7 @@ void loop(){
   if(t.check()){
     /*DHT11: AIR HUMIDITY AND TEMPERATURE*/
     int chk = DHT.read11(DHT11_PIN);
+    
     Serial.print("Temperature = ");
     Serial.println(DHT.temperature);
     Serial.print("Humidity = ");
@@ -29,6 +37,9 @@ void loop(){
     Serial.print(moisture_soil_perc);
     Serial.println("%");
 
+    data = { DHT.humidity, DHT.temperature, moisture_soil_perc };
+    Serial.write((byte*)&data, sizeof(data));
+  
     Serial.println();
   }
 }
