@@ -1,7 +1,8 @@
+import json
+
 import serial
 import serial.tools.list_ports
 import configparser
-from datetime import datetime
 
 
 class Bridge():
@@ -44,15 +45,14 @@ class Bridge():
             if not self.ser is None:
                 if self.ser.in_waiting > 0:
                     data = str(self.ser.readline()).strip("\\n\\rb'").split(' ')
-                    if len(data) == 3:
-                        json = {
-                            "date": datetime.now().strftime("%d/%m/%Y"),
-                            "time": datetime.now().strftime("%H:%M:%S"),
+                    if len(data) == 4:
+                        json_data = json.dumps({
                             "humidity": float(data[0]),
                             "temperature": float(data[1]),
-                            "moisture_soil_perc": int(data[2])
-                        }
-                        print(json)
+                            "moisture_soil_perc": int(data[2]),
+                            "pressure": int(data[3])
+                        }, indent=4)
+                        print(json_data)
 
 
 if __name__ == '__main__':
