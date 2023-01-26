@@ -3,9 +3,11 @@
 
 #define DHT11_PIN 2
 #define MOISTURESENSOR A0
+#define FSRPIN A1
 
 Timer t = Timer();
 dht DHT;
+int fsrreading;
 
 void setup(){
   Serial.begin(9600);
@@ -21,11 +23,15 @@ void loop(){
     /*CAPACITIVE SOIL MOISTURE SENSOR*/
     int moisture_soil_perc = analogRead(MOISTURESENSOR)*100/1023;
 
+    /*FORCE SENSITIVE RESISTOR*/
+    fsrreading = analogRead(FSRPIN);
+
     Serial.print(DHT.humidity);
     Serial.print(" ");
     Serial.print(DHT.temperature);
     Serial.print(" "); 
     Serial.print(moisture_soil_perc);
-    Serial.println();
+    Serial.print(" ");
+    Serial.println(fsrreading);
   }
 }
