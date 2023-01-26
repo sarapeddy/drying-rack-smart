@@ -32,4 +32,10 @@ create table sensor_feed(
     foreign key(cycle_id) references drying_cycle(id)
 );
 
+<<<<<<< Updated upstream
+=======
+alter table weather_feed
+add column weather_time datetime default current_timestamp not null;
+
+>>>>>>> Stashed changes
 
