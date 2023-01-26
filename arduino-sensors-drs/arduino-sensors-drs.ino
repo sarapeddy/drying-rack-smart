@@ -4,7 +4,7 @@
 #define DHT11_PIN 2
 #define MOISTURESENSOR A0
 #define FSRPIN A1
-#define RAINSENSOR_PIN A1
+#define RAINSENSOR_PIN A2
 
 Timer t = Timer();
 dht DHT;
