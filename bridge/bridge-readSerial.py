@@ -5,10 +5,8 @@ import serial.tools.list_ports
 import configparser
 
 
-class Bridge():
-
+class Bridge:
     def __init__(self):
-        self.buffer = []
         self.port_name = None
         self.ser = None
         self.config = configparser.ConfigParser()
@@ -16,7 +14,6 @@ class Bridge():
         self.setupSerial()
 
     def setupSerial(self):
-
         if self.config.get("Serial", "UseDescription", fallback=False):
             self.port_name = self.config.get("Serial", "PortName", fallback="COM1")
         else:
