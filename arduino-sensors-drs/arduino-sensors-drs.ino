@@ -10,7 +10,7 @@ Timer t = Timer();
 dht DHT;
 int fsrreading;
 int rain;
-int moisture_cloth_perc;
+float moisture_cloth_perc;
 
 void setup(){
   Serial.begin(9600);
@@ -24,7 +24,8 @@ void loop(){
     int chk = DHT.read11(DHT11_PIN);
   
     /*CAPACITIVE SOIL MOISTURE SENSOR*/
-    moisture_cloth_perc = analogRead(MOISTURESENSOR)*100/1023;
+    moisture_cloth_perc = analogRead(MOISTURESENSOR);
+    moisture_cloth_perc = 100 - moisture_cloth_perc*100/1023;
 
     /*FORCE SENSITIVE RESISTOR*/
     fsrreading = analogRead(FSRPIN);
