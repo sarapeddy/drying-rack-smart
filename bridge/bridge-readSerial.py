@@ -1,4 +1,5 @@
 import json
+import time
 
 import serial
 import serial.tools.list_ports
@@ -12,6 +13,7 @@ class Bridge:
         self.config = configparser.ConfigParser()
         self.config.read('config.ini')
         self.setupSerial()
+        self.active = False
 
     def setupSerial(self):
         if self.config.get("Serial", "UseDescription", fallback=False):
@@ -38,8 +40,8 @@ class Bridge:
     def loop(self):
         # infinite loop for serial managing
         while True:
-            # look for a line from serial
             if not self.ser is None:
+                # look for a line from serial
                 if self.ser.in_waiting > 0:
                     data = str(self.ser.readline()).strip("\\n\\rb'").split(' ')
                     if len(data) == 5:
@@ -51,6 +53,13 @@ class Bridge:
                             "is_raining": int(data[4])
                         }, indent=4)
                         print(json_data)
+
+                # #write on serial port
+                # if not self.active:
+                #     time.sleep(2)
+                #     # self.ser.open()
+                #     self.ser.write("start".encode())
+                #     self.ser.close()
 
 
 if __name__ == '__main__':
