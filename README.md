@@ -36,4 +36,7 @@ Qui il [link](https://www.tinkercad.com/things/hZl0u94ahFn-drying-rack-smart/edi
 ## Database MySQL
 Il datbase su cui saranno conservati i dati degli utenti sarà gestito con DBMS mySql in una istanza locale, a cui è possibile collegarsi tramite l'utilizzo di una rete virtuale hamachi (scaricabile al [link](https://vpn.net/)).
 
+## StendApp
+Per creare l'app è stato scelto di utilizzare [Thunkable](https://x.thunkable.com/projects/) che permette lo sviluppo di prototipi in modo rapido. In più è stata creata una mail ad-hoc in modo che si possa utilizzare lo stesso file per sviluppare.
+
 
