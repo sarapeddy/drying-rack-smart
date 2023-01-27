@@ -49,7 +49,7 @@ class Bridge():
                         json_data = json.dumps({
                             "air_humidity": float(data[0]),
                             "air_temperature": float(data[1]),
-                            "cloth_humidity": int(data[2]),
+                            "cloth_humidity": float(data[2]),
                             "cloth_weight": int(data[3]),
                             "is_raining": int(data[4])
                         }, indent=4)
