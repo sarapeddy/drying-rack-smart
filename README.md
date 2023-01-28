@@ -32,6 +32,7 @@ Qui il [link](https://www.tinkercad.com/things/hZl0u94ahFn-drying-rack-smart/edi
 - **Capacitive Moisture Soil Sensor**: serve il pin analogico e quindi non ha bisogno di librerie per funzionare. AO
 - **Force Sensitive Resistor**: serve il pin analogico A1
 - **Rain Sensor**: serve il pin analogico A2
+- **LED RGB**: serve come attuatore per capire se il ciclo di asciugatura è finito o meno. Servono il PIN 3 ROSSO, PIN 4 VERDE e PIN 5 BLU.
 
 ## Database MySQL
 Il datbase su cui saranno conservati i dati degli utenti sarà gestito con DBMS mySql in una istanza locale, a cui è possibile collegarsi tramite l'utilizzo di una rete virtuale hamachi (scaricabile al [link](https://vpn.net/)).
