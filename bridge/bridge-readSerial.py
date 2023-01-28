@@ -13,8 +13,8 @@ class Bridge:
         self.config = configparser.ConfigParser()
         self.config.read('config.ini')
         self.setupSerial()
-        self.active = False
-        self.buffer = ''
+        self.new_state = 0
+        self.current_state = 0
 
     def setupSerial(self):
         if self.config.get("Serial", "UseDescription", fallback=False):
@@ -50,7 +50,9 @@ class Bridge:
                 "cloth_weight": int(data[3]),
                 "is_raining": int(data[4])
             }
-            print(json_data)
+            return json_data
+        if len(data) == 1:
+            return {"state": int(data[0])}
         return json_data
 
     def check_rain(self, rain):
@@ -61,33 +63,44 @@ class Bridge:
     def check_weight(self, weight):
         return False
 
+    def start_or_finish_drying_cycle(self, current_state, new_state):
+        try:
+            if current_state != new_state:
+                if new_state:
+                    buffer = 'start'
+                else:
+                    buffer = 'finish'
+
+                self.ser.write(buffer.encode(encoding='ascii', errors='strict'))
+                time.sleep(0.5)
+                return new_state
+            return current_state
+        except serial.SerialException:
+            print("Write on serial port failed")
+            self.ser.close()
+            self.ser = serial.Serial(self.port_name, 9600, timeout=1)
+
     def loop(self):
         # infinite loop for serial managing
         while True:
             if not self.ser is None:
                 # look for a line from serial
                 if self.ser.in_waiting > 0:
+                    # json_data, self.new_state = self.loads_data()
                     json_data = self.loads_data()
 
-                    if json_data != {}:
-                        if self.check_rain(json_data["is_raining"]):
-                            print("Send message to near drying rack")
-                        if self.check_weight(json_data["cloth_weight"]):
-                            print("Terminate Drying Cycle")
+                    try:
+                        self.new_state = json_data["state"]
+                    except KeyError:
+                        if json_data != {}:
+                            if self.check_rain(json_data["is_raining"]):
+                                print("Send message to near drying rack")
+                            if self.check_weight(json_data["cloth_weight"]):
+                                #INSERT HERE A WRITE ON SERIAL PORT TO STOP THE CYCLE
+                                print("Terminate Drying Cycle")
 
                 #write on serial port
-                try:
-                    if self.active:
-                        buffer = 'start'
-                    else:
-                        buffer = 'finish'
-                    self.active = not self.active
-                    self.ser.write(buffer.encode(encoding='ascii', errors='strict'))
-                    time.sleep(2)
-                except serial.SerialException:
-                    print("Write on serial port failed")
-                    self.ser.close()
-                    self.ser = serial.Serial(self.port_name, 9600, timeout=1)
+                self.current_state = self.start_or_finish_drying_cycle(self.current_state, self.new_state)
 
 
 if __name__ == '__main__':

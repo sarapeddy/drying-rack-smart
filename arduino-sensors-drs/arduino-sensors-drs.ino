@@ -8,12 +8,14 @@
 #define RED 3
 #define GREEN 4
 #define BLUE 5
+#define BUTTON 6
 
 Timer t = Timer();
 dht DHT;
 int fsrreading;
 int rain;
 float moisture_cloth_perc;
+bool state;
 
 void set_color(bool red, bool green, bool blue){
   digitalWrite(RED, red);
@@ -24,13 +26,26 @@ void set_color(bool red, bool green, bool blue){
 void setup(){
   Serial.begin(9600);
   t.set(8000);
+  
+  /* SET RGB LED */
   pinMode(RED, OUTPUT);
   pinMode(GREEN, OUTPUT);
   pinMode(BLUE, OUTPUT);
   set_color(0, 1, 0);
+  
+  /* SET BUTTON DRYING CYCLE */
+  pinMode(BUTTON, INPUT);
+  state = false;
 }
 
 void loop(){
+  /* CHECK WHEN THE BUTTON IS PRESSED */
+  int buttonState = digitalRead(BUTTON);
+  delay(200);
+  if(buttonState == HIGH){
+    state = !state;
+    Serial.println(state);
+  }
 
   if(t.check()){
     /*DHT11: AIR HUMIDITY AND TEMPERATURE*/
@@ -54,7 +69,7 @@ void loop(){
     Serial.print(" ");
     Serial.print(fsrreading);
     Serial.print(" ");
-    Serial.println(rain);
+    Serial.print(rain);
   }
 
   if(Serial.available() > 0){
