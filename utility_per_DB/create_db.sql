@@ -35,4 +35,15 @@ create table sensor_feed(
 alter table weather_feed
 add column weather_time datetime default current_timestamp not null;
 
+alter table sensor_feed
+drop column cloth_humidity,
+add column cloth_humidity float check(cloth_humidity>=0 and cloth_humidity<=100);
+
+alter table sensor_feed
+drop column air_humidity,
+add column air_humidity int check(air_humidity>=0 and air_humidity<=100);
+
+alter table drying_cycle
+add column is_active bool default true;
+
 
