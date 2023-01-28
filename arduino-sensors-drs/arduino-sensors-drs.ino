@@ -60,7 +60,6 @@ void loop(){
   if(Serial.available() > 0){
     String str = Serial.readString();
     str.trim();
-    Serial.println(str);
     
     if(str == "start"){
       set_color(1, 0, 0);
