@@ -41,7 +41,7 @@ Il datbase su cui saranno conservati i dati degli utenti sarà gestito con DBMS 
 Per creare l'app è stato scelto di utilizzare [Thunkable](https://x.thunkable.com/projects/) che permette lo sviluppo di prototipi in modo rapido. In più è stata creata una mail ad-hoc in modo che si possa utilizzare lo stesso file per sviluppare.
 
 ## Flask
-Per il lato server e per la realizzazione di API Rest in grado di ricevere richieste HTTP ed effettuare le query al db
+Per il lato server e per la realizzazione di API Rest in grado di ricevere richieste HTTP ed effettuare le query al db.
 TODO
 - collegamento al db reale
 - operazioni CRUD
