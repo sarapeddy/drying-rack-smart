@@ -42,3 +42,7 @@ Per creare l'app è stato scelto di utilizzare [Thunkable](https://x.thunkable.c
 
 ## Flask
 Per il lato server e per la realizzazione di API Rest in grado di ricevere richieste HTTP ed effettuare le query al db
+TODO
+- collegamento al db reale
+- operazioni CRUD
+- 
