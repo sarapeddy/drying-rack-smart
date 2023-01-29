@@ -32,6 +32,7 @@ Qui il [link](https://www.tinkercad.com/things/hZl0u94ahFn-drying-rack-smart/edi
 - **Capacitive Moisture Soil Sensor**: serve il pin analogico e quindi non ha bisogno di librerie per funzionare. AO
 - **Force Sensitive Resistor**: serve il pin analogico A1
 - **Rain Sensor**: serve il pin analogico A2
+- **LED RGB**: serve come attuatore per capire se il ciclo di asciugatura è finito o meno. Servono il PIN 3 ROSSO, PIN 4 VERDE e PIN 5 BLU.
 
 ## Database MySQL
 Il datbase su cui saranno conservati i dati degli utenti sarà gestito con DBMS mySql in una istanza locale, a cui è possibile collegarsi tramite l'utilizzo di una rete virtuale hamachi (scaricabile al [link](https://vpn.net/)).
@@ -39,4 +40,5 @@ Il datbase su cui saranno conservati i dati degli utenti sarà gestito con DBMS 
 ## StendApp
 Per creare l'app è stato scelto di utilizzare [Thunkable](https://x.thunkable.com/projects/) che permette lo sviluppo di prototipi in modo rapido. In più è stata creata una mail ad-hoc in modo che si possa utilizzare lo stesso file per sviluppare.
 
-
+## Flask
+Per il lato server e per la realizzazione di API Rest in grado di ricevere richieste HTTP ed effettuare le query al db
