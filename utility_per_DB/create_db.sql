@@ -46,4 +46,12 @@ add column air_humidity int check(air_humidity>=0 and air_humidity<=100);
 alter table drying_cycle
 add column is_active bool default true;
 
+alter table rack_user
+add column is_outside bool default true;
+
+alter table rack_user
+add column is_active bool default false;
+
+
+
 
