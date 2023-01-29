@@ -45,3 +45,4 @@ Per il lato server e per la realizzazione di API Rest in grado di ricevere richi
 TODO
 - collegamento al db reale
 - operazioni CRUD
+- documentazione Swagger
