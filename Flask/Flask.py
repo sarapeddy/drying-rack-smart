@@ -14,7 +14,7 @@ password =config.get('Database', 'password')
 host =config.get('Database', 'host')
 database =config.get('Database', 'database')
 raise_on = bool(config.get('Database', 'raise_on_warnings'))
-print(user, password, host, database, raise_on, type(raise_on))
+#print(user, password, host, database, raise_on, type(raise_on))
 
 #api = Api(app)
 
@@ -107,7 +107,7 @@ def receive_json():
     # inserire dati dei sensori nel db
     return request_data
 
-@app.route('/<string:rack_user>')
+@app.route('/<string:user>')
 def display(user):
     result = select_sensor_feed(user)
     return json.loads(result)
