@@ -1,0 +1,9 @@
+# esempio file config.ini
+
+[Database]
+
+user = username
+password = password
+host = 25.46.183.67
+database = stendini_smart
+raise_on_warnings = True
