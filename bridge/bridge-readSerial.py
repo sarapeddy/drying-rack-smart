@@ -1,16 +1,18 @@
 import json
 import time
-
 import serial
 import serial.tools.list_ports
-import configparser
+from six.moves.configparser import ConfigParser
 
 
 class Bridge:
+    """
+        This class is the bridge between Arduino and Flask for Drying Rack Smart Iot Project
+    """
     def __init__(self):
         self.port_name = None
         self.ser = None
-        self.config = configparser.ConfigParser()
+        self.config = ConfigParser()
         self.config.read('config.ini')
         self.setupSerial()
         self.new_state = 0

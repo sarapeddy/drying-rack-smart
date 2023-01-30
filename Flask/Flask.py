@@ -2,7 +2,7 @@ import json
 import mysql.connector
 from flask import Flask, request, session, render_template
 from flask_restx import Api, Resource
-from configparser import ConfigParser
+from six.moves.configparser import ConfigParser
 
 appname = "Smart Drying-rack"
 app = Flask(appname)
