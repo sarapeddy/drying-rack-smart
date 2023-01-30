@@ -2,18 +2,22 @@ import json
 import mysql.connector
 from flask import Flask, request, session, render_template
 from flask_restx import Api, Resource
+from configparser import ConfigParser
 
 appname = "Smart Drying-rack"
 app = Flask(appname)
+
+config = ConfigParser()
+config.read('config.ini')
+user = config.get('Database', 'user')
+password =config.get('Database', 'password')
+host =config.get('Database', 'host')
+database =config.get('Database', 'database')
+raise_on = bool(config.get('Database', 'raise_on_warnings'))
+print(user, password, host, database, raise_on, type(raise_on))
+
 #api = Api(app)
 
-config = {
-  'user': 'cosimo',
-  'password': '123',
-  'host': '25.46.183.67',
-  'database': 'stendini_smart',
-  'raise_on_warnings': True
-}
 
 @app.route('/')
 def hello():
@@ -23,7 +27,7 @@ def hello():
 def testdb():
     global cnx, cur
     try:
-        cnx = mysql.connector.connect(**config)
+        cnx = mysql.connector.connect(user=user, password=password, host=host, db=database)
         cur = cnx.cursor()
         cur.execute('select * from rack_user')
         result = cur.fetchall()
@@ -106,4 +110,4 @@ def receive_json():
 if __name__ == '__main__':
     host = '0.0.0.0'
     port = 80
-    app.run(port=port, host=host)
+    app.run(port=port, host=host, debug=True)
