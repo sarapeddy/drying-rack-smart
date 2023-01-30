@@ -2,7 +2,7 @@ import json
 import time
 import serial
 import serial.tools.list_ports
-from six.moves.configparser import ConfigParser
+from configparser import ConfigParser
 
 
 class Bridge:

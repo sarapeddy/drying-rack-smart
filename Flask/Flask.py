@@ -135,7 +135,7 @@ def select_sensor_feed(user):
             f"where rack_user.user_name like '{user}');"
     cur.execute(query)
     result = cur.fetchall()
-    return result
+    return str(result)
 
 
 def select_last_sensor_feed(user):
