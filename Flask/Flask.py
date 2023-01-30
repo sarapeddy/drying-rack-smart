@@ -1,19 +1,17 @@
 import json
-from flask import Flask, request, session, render_template
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.sql import text
-import pymysql
 import mysql.connector
-
+from flask import Flask, request, session, render_template
+from flask_restx import Api, Resource
 
 appname = "Smart Drying-rack"
 app = Flask(appname)
+#api = Api(app)
 
 config = {
-  'user': 'root',
-  'password': '1234567890',
-  'host': '127.0.0.1',
-  'database': 'smartstendino',
+  'user': 'cosimo',
+  'password': '123',
+  'host': '25.46.183.67',
+  'database': 'stendini_smart',
   'raise_on_warnings': True
 }
 
@@ -27,15 +25,16 @@ def testdb():
     try:
         cnx = mysql.connector.connect(**config)
         cur = cnx.cursor()
-        #cur.execute('select * from rack_user')
-        #result = cur.fetchall()
-        #print(result)
+        cur.execute('select * from rack_user')
+        result = cur.fetchall()
+        print(result)
         return '<h1>Smart Drying-Rack<h1>'
     except Exception as e:
         cnx.close()
         cur.close()
         print("\nThe error:\n" + str(e) + "\n")
         return '<h1>Something is broken.</h1>'
+
 
 @app.route('/', methods=['PUT'])
 def query_records():
