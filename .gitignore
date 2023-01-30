@@ -1,3 +1,4 @@
 Pip*
 .idea
 config.ini
+/Flask/__pycache__
