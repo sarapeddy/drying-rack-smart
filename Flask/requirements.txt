@@ -1,5 +1,2 @@
-pymysql~=1.0.2
 flask~=2.2.2
-sqlalchemy~=2.0.0
-mysql~=8.0.31
 mysql-connector-python~=8.0.31
