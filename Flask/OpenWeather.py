@@ -24,9 +24,10 @@ class OpenWeather:
         return w.humidity
 
 
-
+'''
 if __name__ == '__main__':
     ow = OpenWeather('2be3598cfb1963158f213a238e5c272e')
     print(ow.get_temperature(44.877120, 10.797592))
     print(ow.is_going_to_rain_in_3h(44.877120, 10.797592))    
     print(ow.get_humidity(44.877120, 10.797592))
+'''
