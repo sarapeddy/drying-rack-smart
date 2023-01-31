@@ -54,7 +54,7 @@ where r1.user_name like 'ilVincio'
 and r.user_name not like 'ilVincio'
 and r.is_active is true
 and abs(r.lat-r1.lat)<=0.0753
-and abs(r.lon-r1.lon)<=0.0753
+and abs(r.lon-r1.lon)<=0.0753;
 #and sqrt((r.lat - r1.lat)*(r.lat - r1.lat) - (r.lon - r1.lon)*(r.lon - r1.lon)) <= 0.1506;
 
 #QUERY DI INSERT
