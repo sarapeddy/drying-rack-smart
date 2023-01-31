@@ -3,6 +3,7 @@ import mysql.connector
 from flask import Flask, request, session, render_template, abort
 from flask_restx import Api, Resource
 from configparser import ConfigParser
+from OpenWeather import OpenWeather
 
 appname = "Smart Drying-rack"
 app = Flask(appname)
@@ -21,6 +22,8 @@ try:
     cur = cnx.cursor()
 except Exception as e:
     print(e)
+
+key_weather = config.get('Weather', 'key')
 
 api = Api(app)
 
@@ -70,36 +73,6 @@ def hello_name():
 def add_user_view():
     return render_template('add.html')
 
-@app.route('/show')
-def show():
-    # TODO
-    # select, read elements
-    return 0
-
-@app.route('/edit/<user>')
-def edit():
-    # TODO
-    # edit form where user updates information
-    return 0
-
-@app.route('/update/user', methods=['POST'])
-def update_user():
-    # TODO
-    # update user information
-    return 0
-
-@app.route('/update/data', methods=['POST'])
-def update_data():
-    # TODO
-    # update data
-    return 0
-
-@app.route('/delete')
-def delete():
-    # TODO
-    # delete information or user
-    return 0
-
 @app.route('/sensors')
 def func1():
     # TODO
@@ -114,6 +87,22 @@ def receive_json():
     # inserire dati dei sensori nel db
     return request_data
 
+@app.route('/weather_feed/<string:user>', methods=['GET', 'POST'])
+def show_weather_info(user):
+    if request.method == 'POST':
+        return abort(405)
+    else:
+        myweather = OpenWeather(key_weather)
+        #result = select_lat_lon(user)
+        #print(result)
+        lat = 44
+        lon = 10
+        temp = myweather.get_temperature(lat, lon)
+        rain = myweather.is_going_to_rain_in_3h(lat, lon)
+        hum = myweather.get_humidity(lat, lon)
+        mydict = dict(temp=temp, rain=rain, hum=hum)
+        return json.dumps(mydict, indent=4)
+
 @app.route('/rack_user/<string:user>')
 def display(user):
     if user is None:
@@ -121,6 +110,16 @@ def display(user):
     result = select_sensor_feed(user)
     r = [dict((cur.description[i][0], value) for i, value in enumerate(row)) for row in result]
     return r[0] if r else None
+
+def select_lat_lon(user):
+    # seleziona latitudine e longitudine
+    query = f"select lat, lon" \
+            f"from rack_user" \
+            f"where user_name like '{user}'" \
+            f";"
+    cur.execute(query)
+    result = cur.fetchall()
+    return result
 
 def select_sensor_feed(user):
     # seleziona tutti i sensor feed dell'ultimo ciclo asciugatura di un utente
