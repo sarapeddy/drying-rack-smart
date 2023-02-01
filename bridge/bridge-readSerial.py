@@ -13,9 +13,9 @@ class Bridge:
     def __init__(self):
         self.port_name = None
         self.ser = None
-        self.check_credentials()
         self.config = ConfigParser()
         self.config.read('config.ini')
+        self.check_credentials()
         self.setupSerial()
         self.new_state = 0
         self.current_state = 0
