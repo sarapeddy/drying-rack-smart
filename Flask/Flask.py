@@ -15,7 +15,7 @@ password =config.get('Database', 'password')
 host =config.get('Database', 'host')
 database =config.get('Database', 'database')
 raise_on = bool(config.get('Database', 'raise_on_warnings'))
-#print(user, password, host, database, raise_on, type(raise_on))
+# print(user, password, host, database, raise_on, type(raise_on))
 
 try:
     cnx = mysql.connector.connect(user=user, password=password, host=host, db=database)
@@ -73,6 +73,26 @@ def hello_name():
 def add_user_view():
     return render_template('add.html')
 
+
+@app.route('/check-credentials', methods=['POST'])
+def check_credentials():
+    try:
+        result = check_rack_user(request.get_json())
+        if result:
+            return "Login"
+    except KeyError:
+        return "Uncorrect json format"
+    return "Uncorrect username or/and password"
+
+
+def check_rack_user(user):
+    query = f"select user_name, pin from rack_user " \
+            f"where pin='{user['password']}' and user_name='{user['user_name']}';"
+    cur.execute(query)
+    result = cur.fetchall()
+    return result
+
+
 @app.route('/sensors')
 def func1():
     # TODO
@@ -101,6 +121,7 @@ def show_weather_info(user):
         hum = myweather.get_humidity(lat, lon)
         mydict = dict(temp=temp, rain=rain, hum=hum)
         return json.dumps(mydict, indent=4)
+
 
 @app.route('/rack_user/<string:user>')
 def display(user):
