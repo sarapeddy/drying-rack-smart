@@ -1,19 +1,24 @@
 <!doctype html>
-<title>Add user</title>
-<h2>Add User</h2>
-<form method="post" action="/add">
+<title>New user</title>
+<h2>New account</h2>
+<form method="post" action="{{ url_for('add_user_view')}}">
 <dl>
 <p>
 <input name="inputName" value="" type="text"
             placeholder="Name" autocomplete="off" required>
 </p>
-<p>
-<input name="inputEmail" value="" type="text"
-            placeholder="Email" autocomplete="off" required>
-</p>
+
 <p>
 <input name="inputPassword" value="" type="password"
             placeholder="Password" autocomplete="off" required>
+</p>
+    <p>
+<input name="lat" value="" type="text"
+            placeholder="Latitude" autocomplete="off" required>
+</p>
+    <p>
+<input name="lon" value="" type="text"
+            placeholder="Longitude" autocomplete="off" required>
 </p>
 </dl>
 <p>
