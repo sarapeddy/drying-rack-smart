@@ -87,7 +87,7 @@ def check_credentials():
 
 def check_rack_user(user):
     query = f"select user_name, pin from rack_user " \
-            f"where pin='{user['password']}' and user_name='{user['user_name']}';"
+            f"where pin='{user['password']}' and user_name='{user['username']}';"
     cur.execute(query)
     result = cur.fetchall()
     return result
@@ -99,10 +99,26 @@ def func1():
     # visione sensori, nomi, dati, statistiche,...
     return "Sensors --> DHT11, ..."
 
+
+@app.route('/new-drying-cycle', methods=['POST'])
+def create_new_drying_clycle():
+    request_data = request.get_json()
+    query = f"insert into drying_cycle (`user_name`) " \
+            f"values (%(user)s);"
+    cur.execute(query, request_data)
+    return str(cur.lastrowid)
+
+
 @app.route('/sensors/data', methods=['POST'])
 def receive_json():
     request_data = request.get_json()
-    print(request_data)
+    query = f"insert into sensor_feed(air_temperature, is_raining, cloth_weight, cycle_id, cloth_humidity, air_humidity)" \
+            f"values({request_data['air_temperature']}, " \
+            f"{request_data['is_raining']}, {request_data['cloth_weight']}, " \
+            f"{request_data['cycle_id']}, {request_data['cloth_humidity']}, " \
+            f"{request_data['air_humidity']});"
+
+    # print(request_data)
     # TODO
     # inserire dati dei sensori nel db
     return request_data

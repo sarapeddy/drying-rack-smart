@@ -69,7 +69,7 @@ void loop(){
     Serial.print(" ");
     Serial.print(fsrreading);
     Serial.print(" ");
-    Serial.print(rain);
+    Serial.println(rain);
   }
 
   if(Serial.available() > 0){

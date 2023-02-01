@@ -13,19 +13,20 @@ class Bridge:
     def __init__(self):
         self.port_name = None
         self.ser = None
+        self.user = None
+        self.cycle_id = None
         self.config = ConfigParser()
         self.config.read('config.ini')
         self.check_credentials()
         self.setupSerial()
         self.new_state = 0
         self.current_state = 0
-        self.user = None
 
     def check_credentials(self):
         while True:
             self.user = {
-                'user_name': input("Insert usename: "),
-                'password': input("Insert password: "),
+                'username': input("Insert username: "),
+                'password': input("Insert password: ")
             }
 
             r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/check-credentials", json=self.user)
@@ -64,7 +65,8 @@ class Bridge:
                 "air_temperature": float(data[1]),
                 "cloth_humidity": float(data[2]),
                 "cloth_weight": int(data[3]),
-                "is_raining": int(data[4])
+                "is_raining": int(data[4]),
+                "cycle_id": self.cycle_id
             }
             return json_data
         if len(data) == 1:
@@ -88,6 +90,10 @@ class Bridge:
                     buffer = 'finish'
 
                 self.ser.write(buffer.encode(encoding='ascii', errors='strict'))
+                if buffer == 'start':
+                    r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/new-drying-cycle",
+                                      json={'user': self.user['username']})
+                    self.cycle_id = int(r.text)
                 time.sleep(0.5)
                 return new_state
             return current_state
@@ -102,13 +108,14 @@ class Bridge:
             if not self.ser is None:
                 # look for a line from serial
                 if self.ser.in_waiting > 0:
-                    # json_data, self.new_state = self.loads_data()
                     json_data = self.loads_data()
 
                     try:
                         self.new_state = json_data["state"]
                     except KeyError:
-                        if json_data != {}:
+                        if json_data != {} and self.current_state == 1:
+                            r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/sensors/data", json=json_data)
+                            print(r.status_code)
                             if self.check_rain(json_data["is_raining"]):
                                 print("Send message to near drying rack")
                             if self.check_weight(json_data["cloth_weight"]):
