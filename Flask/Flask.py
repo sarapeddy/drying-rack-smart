@@ -104,24 +104,26 @@ def func1():
 def create_new_drying_clycle():
     request_data = request.get_json()
     query = f"insert into drying_cycle (`user_name`) " \
-            f"values (%(user)s);"
-    cur.execute(query, request_data)
+            f"values ('{request_data['user']}');"
+    cur.execute(query)
+    cnx.commit()
     return str(cur.lastrowid)
 
 
 @app.route('/sensors/data', methods=['POST'])
 def receive_json():
     request_data = request.get_json()
-    query = f"insert into sensor_feed(air_temperature, is_raining, cloth_weight, cycle_id, cloth_humidity, air_humidity)" \
+    query = f"insert into sensor_feed(`air_temperature`, `is_raining`, `cloth_weight`, `cycle_id`, " \
+            f"`cloth_humidity`, `air_humidity`) " \
             f"values({request_data['air_temperature']}, " \
             f"{request_data['is_raining']}, {request_data['cloth_weight']}, " \
             f"{request_data['cycle_id']}, {request_data['cloth_humidity']}, " \
             f"{request_data['air_humidity']});"
 
-    # print(request_data)
-    # TODO
-    # inserire dati dei sensori nel db
-    return request_data
+    cur.execute(query)
+    cnx.commit()
+    return str(cur.lastrowid)
+
 
 @app.route('/weather_feed/<string:user>', methods=['GET', 'POST'])
 def show_weather_info(user):

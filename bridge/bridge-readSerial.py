@@ -86,14 +86,14 @@ class Bridge:
             if current_state != new_state:
                 if new_state:
                     buffer = 'start'
-                else:
-                    buffer = 'finish'
-
-                self.ser.write(buffer.encode(encoding='ascii', errors='strict'))
-                if buffer == 'start':
                     r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/new-drying-cycle",
                                       json={'user': self.user['username']})
                     self.cycle_id = int(r.text)
+                else:
+                    buffer = 'finish'
+                    self.cycle_id = None
+
+                self.ser.write(buffer.encode(encoding='ascii', errors='strict'))
                 time.sleep(0.5)
                 return new_state
             return current_state
@@ -115,7 +115,7 @@ class Bridge:
                     except KeyError:
                         if json_data != {} and self.current_state == 1:
                             r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/sensors/data", json=json_data)
-                            print(r.status_code)
+                            print(r.text)
                             if self.check_rain(json_data["is_raining"]):
                                 print("Send message to near drying rack")
                             if self.check_weight(json_data["cloth_weight"]):
