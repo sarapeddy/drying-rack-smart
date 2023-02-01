@@ -29,7 +29,7 @@ class Bridge:
                 'password': input("Insert password: ")
             }
 
-            r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/check-credentials", json=self.user)
+            r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/credentials", json=self.user)
             if r.text == "Login":
                 break
 

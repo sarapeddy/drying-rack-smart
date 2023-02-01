@@ -78,7 +78,7 @@ def add_user_view():
     return render_template('add.html')
 
 
-@app.route('/check-credentials', methods=['POST'])
+@app.route('/credentials', methods=['POST'])
 def check_credentials():
     try:
         result = check_rack_user(request.get_json())
@@ -95,21 +95,6 @@ def check_rack_user(user):
     cur.execute(query)
     result = cur.fetchall()
     return result
-
-
-@app.route('/sensor_feed/', defaults={'user' : None})
-@app.route('/sensor_feed/<string:user>', methods=['GET', 'POST'])
-def get_sensor_feed(user=None):
-    if request.method == 'POST':
-        post_sensor_feed()
-    else:
-        if user is None:
-            # select sensor_feed query
-            pass
-        else:
-            # select sensor_feed query for specific user
-            pass
-    return 'testing'
 
 
 @app.route('/drying-cycle', methods=['POST'])
