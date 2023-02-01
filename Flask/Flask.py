@@ -39,7 +39,6 @@ def hello():
     testdb()
     return '<h1>Smart Drying-Rack<h1>'
 
-
 def testdb():
     try:
         cur.execute('select * from rack_user')
@@ -72,11 +71,41 @@ def hello_name():
         response += '[Not Authenticated]'
     return response
 
-
-@app.route('/new_user')
+@app.route('/registration/', methods=['GET', 'POST'])
 def add_user_view():
+    if request.method == 'POST':
+        data = receive_registration_form()
+        s = check(data)
+        #print(s)
+
+        # insert new user in db
+
+        return s
     return render_template('add.html')
 
+def check(data):
+
+    longitude = str(data.pop())
+    latitude = str(data.pop())
+    password_utente = str(data.pop())
+    rack_user = str(data.pop())
+
+    print(rack_user, password_utente, latitude, longitude)
+
+    # check credentials with db
+    mylogin = Login(cur)
+    response1 = mylogin.lat_lon_control(latitude, longitude)
+    response2 = mylogin.check_db(rack_user, password_utente)
+
+    return 'ok'
+
+def receive_registration_form():
+    temp = []
+    temp.append(request.form.get("inputName"))
+    temp.append(request.form.get("inputPassword"))
+    temp.append(request.form.get("lat"))
+    temp.append(request.form.get("lon"))
+    return temp
 
 @app.route('/credentials', methods=['POST'])
 def check_credentials():
@@ -142,7 +171,6 @@ def show_stats(user = None):
     return dict(mean_cycle_time=mean_cycle_time, normalized_cycle_time=normalized_cycle_time,
                 normalized_cycle_time_temp=normalized_cycle_time_temp)
 
-
 @app.route('/weather_feed/<string:user>', methods=['GET', 'POST'])
 def show_weather_info(user):
     if request.method == 'POST':
@@ -158,20 +186,18 @@ def show_weather_info(user):
         mydict = dict(temp=temp, rain=rain, hum=hum)
         return json.dumps(mydict, indent=4)
 
-
 @app.route('/rack_user/<string:user>')
 def display(user):
     if user is None:
         return abort(404)
-    #result = select_sensor_feed(user)
-    result = select_start_finish_time(user)
+
+    result = select_last_sensor_feed(user)
 
     r = [dict((cur.description[i][0], value) for i, value in enumerate(row)) for row in result]
     if 'application/json' in request.headers:
         return json.dumps(r, indent=4, separators=(',', ': '), default=str) if r else None
     else:
         return r if r else None
-
 
 def select_lat_lon(user):
     # seleziona latitudine e longitudine
@@ -183,7 +209,6 @@ def select_lat_lon(user):
     result = cur.fetchall()
     return result
 
-
 def select_sensor_feed(user):
     # seleziona tutti i sensor feed dell'ultimo ciclo asciugatura di un utente
     query = f"select * from sensor_feed join drying_cycle on(sensor_feed.cycle_id = drying_cycle.id) " \
@@ -193,7 +218,6 @@ def select_sensor_feed(user):
     cur.execute(query)
     result = cur.fetchall()
     return result
-
 
 def select_last_sensor_feed(user):
     # seleziona l'ultimo sensor feed dell'ultimo ciclo asciugatura dato un utente
@@ -207,7 +231,6 @@ def select_last_sensor_feed(user):
     result = cur.fetchall()
     return result
 
-
 def select_last_weather_feed(user):
     # seleziona l'ultimo weather_feed dato un utente
     query = f"select * from weather_feed join rack_user " \
@@ -219,7 +242,6 @@ def select_last_weather_feed(user):
     result = cur.fetchall()
     return result
 
-
 def select_all_cycles(user):
     # seleziona tutti i cicli conclusi di un utente (utile per fare medie e statistiche)
     query = f"select * from drying_cycle " \
@@ -228,7 +250,6 @@ def select_all_cycles(user):
     cur.execute(query)
     result = cur.fetchall()
     return result
-
 
 def select_closing_time_drying_cycle(user):
     # seleziona il momento di chiusura dell'ultimo ciclo di asciugatura concluso di un dato utente
@@ -245,7 +266,6 @@ def select_closing_time_drying_cycle(user):
     result = cur.fetchall()
     return result
 
-
 def select_start_finish_time(user):
     # seleziona start_time e finish_time di tutti i cicli asciugatura di un utente
     query = f"select d.start_time, s.sensor_time as finish_time " \
@@ -257,7 +277,6 @@ def select_start_finish_time(user):
     cur.execute(query)
     result = cur.fetchall()
     return result
-
 
 def select_state(user):
     # seleziona lo stato (dentro o fuori) degli stendini degli utenti vicini ad un certo utente(<10km)
