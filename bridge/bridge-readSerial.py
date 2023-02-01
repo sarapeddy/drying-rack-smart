@@ -28,7 +28,7 @@ class Bridge:
                 'password': input("Insert password: "),
             }
 
-            r = requests.post(url="http://127.0.0.1:5000/check-credentials", json=user)
+            r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/check-credentials", json=user)
             if r.text == "Login":
                 break
 
