@@ -5,6 +5,7 @@ from flask_restx import Api, Resource
 from configparser import ConfigParser
 from OpenWeather import OpenWeather
 from Stats import Statistics
+from Login import Login
 
 appname = "Smart Drying-rack"
 app = Flask(appname)
@@ -74,9 +75,19 @@ def hello_name():
 def add_user_view():
     return render_template('add.html')
 
-@app.route('/check-credentials')
+@app.route('/check-credentials', methods=['POST'])
 def check():
-    pass
+    data = receive_json()
+    temp = []
+    for key, value in data.items():
+        temp.append(value)
+    password_utente = str(temp.pop())
+    rack_user = str(temp.pop())
+    # check login credentials with db
+    mylogin = Login(cur)
+    response = mylogin.check_db(rack_user, password_utente)
+
+    return response
 
 @app.route('/sensor_feed/', defaults={'user' : None})
 @app.route('/sensor_feed/<string:user>', methods=['GET', 'POST'])
