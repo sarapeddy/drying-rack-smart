@@ -76,18 +76,22 @@ def add_user_view():
     return render_template('add.html')
 
 @app.route('/check-credentials', methods=['POST'])
-def check():
-    data = receive_json()
-    temp = []
-    for key, value in data.items():
-        temp.append(value)
-    password_utente = str(temp.pop())
-    rack_user = str(temp.pop())
-    # check login credentials with db
-    mylogin = Login(cur)
-    response = mylogin.check_db(rack_user, password_utente)
+def check_credentials():
+    try:
+        result = check_rack_user(request.get_json())
+        if result:
+            return "Login"
+    except KeyError:
+        return "Uncorrect json format"
+    return "Uncorrect username or/and password"
 
-    return response
+
+def check_rack_user(user):
+    query = f"select user_name, pin from rack_user " \
+            f"where pin='{user['password']}' and user_name='{user['username']}';"
+    cur.execute(query)
+    result = cur.fetchall()
+    return result
 
 @app.route('/sensor_feed/', defaults={'user' : None})
 @app.route('/sensor_feed/<string:user>', methods=['GET', 'POST'])
@@ -110,10 +114,30 @@ def post_sensor_feed(user):
     # inserire dati dei sensori nel db
     return 0
 
+
+@app.route('/new-drying-cycle', methods=['POST'])
+def create_new_drying_clycle():
+    request_data = request.get_json()
+    query = f"insert into drying_cycle (`user_name`) " \
+            f"values ('{request_data['user']}');"
+    cur.execute(query)
+    cnx.commit()
+    return str(cur.lastrowid)
+
+
+@app.route('/sensors/data', methods=['POST'])
 def receive_json():
     request_data = request.get_json()
-    print(request_data)
-    return request_data
+    query = f"insert into sensor_feed(`air_temperature`, `is_raining`, `cloth_weight`, `cycle_id`, " \
+            f"`cloth_humidity`, `air_humidity`) " \
+            f"values({request_data['air_temperature']}, " \
+            f"{request_data['is_raining']}, {request_data['cloth_weight']}, " \
+            f"{request_data['cycle_id']}, {request_data['cloth_humidity']}, " \
+            f"{request_data['air_humidity']});"
+
+    cur.execute(query)
+    cnx.commit()
+    return str(cur.lastrowid)
 
 @app.route('/stats/', defaults={'user' : None})
 @app.route('/stats/<string:user>')
