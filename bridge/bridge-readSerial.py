@@ -86,7 +86,7 @@ class Bridge:
             if current_state != new_state:
                 if new_state:
                     buffer = 'start'
-                    r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/new-drying-cycle",
+                    r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/drying-cycle",
                                       json={'user': self.user['username']})
                     self.cycle_id = int(r.text)
                 else:
