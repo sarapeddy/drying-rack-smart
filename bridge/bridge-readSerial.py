@@ -3,6 +3,7 @@ import time
 import serial
 import serial.tools.list_ports
 from configparser import ConfigParser
+import requests
 
 
 class Bridge:
@@ -12,11 +13,24 @@ class Bridge:
     def __init__(self):
         self.port_name = None
         self.ser = None
+        self.check_credentials()
         self.config = ConfigParser()
         self.config.read('config.ini')
         self.setupSerial()
         self.new_state = 0
         self.current_state = 0
+        self.user = None
+
+    def check_credentials(self):
+        while True:
+            self.user = {
+                'user_name': input("Insert usename: "),
+                'password': input("Insert password: "),
+            }
+
+            r = requests.post(url="http://127.0.0.1:5000/check-credentials", json=user)
+            if r.text == "Login":
+                break
 
     def setupSerial(self):
         if self.config.get("Serial", "UseDescription", fallback=False):
