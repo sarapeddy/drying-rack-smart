@@ -4,6 +4,8 @@ from flask import Flask, request, session, render_template, abort
 from flask_restx import Api, Resource
 from configparser import ConfigParser
 from OpenWeather import OpenWeather
+from Stats import Statistics
+from Login import Login
 
 appname = "Smart Drying-rack"
 app = Flask(appname)
@@ -15,7 +17,7 @@ password =config.get('Database', 'password')
 host =config.get('Database', 'host')
 database =config.get('Database', 'database')
 raise_on = bool(config.get('Database', 'raise_on_warnings'))
-# print(user, password, host, database, raise_on, type(raise_on))
+#print(user, password, host, database, raise_on, type(raise_on))
 
 try:
     cnx = mysql.connector.connect(user=user, password=password, host=host, db=database)
@@ -73,7 +75,6 @@ def hello_name():
 def add_user_view():
     return render_template('add.html')
 
-
 @app.route('/check-credentials', methods=['POST'])
 def check_credentials():
     try:
@@ -92,12 +93,26 @@ def check_rack_user(user):
     result = cur.fetchall()
     return result
 
+@app.route('/sensor_feed/', defaults={'user' : None})
+@app.route('/sensor_feed/<string:user>', methods=['GET', 'POST'])
+def get_sensor_feed(user=None):
+    if request.method == 'POST':
+        post_sensor_feed()
+    else:
+        if user is None:
+            # select sensor_feed query
+            pass
+        else:
+            # select sensor_feed query for specific user
+            pass
+    return 'testing'
 
-@app.route('/sensors')
-def func1():
+def post_sensor_feed(user):
+    data = receive_json()
+    print(user, data)
     # TODO
-    # visione sensori, nomi, dati, statistiche,...
-    return "Sensors --> DHT11, ..."
+    # inserire dati dei sensori nel db
+    return 0
 
 
 @app.route('/new-drying-cycle', methods=['POST'])
@@ -124,6 +139,25 @@ def receive_json():
     cnx.commit()
     return str(cur.lastrowid)
 
+@app.route('/stats/', defaults={'user' : None})
+@app.route('/stats/<string:user>')
+def show_stats(user = None):
+    mystats = Statistics(cur)
+    mean_cycle_time = 0
+    normalized_cycle_time = 0
+    normalized_cycle_time_temp = 0
+    if user is None:
+        mean_cycle_time = mystats.get_mean_cycle_time_user()
+        normalized_cycle_time = mystats.get_normalized_mean_cycle_time()
+        normalized_cycle_time_temp = mystats.get_normalized_cycle_time_per_temp()
+        return dict(mean_cycle_time=mean_cycle_time, normalized_cycle_time=normalized_cycle_time,
+                    normalized_cycle_time_temp=normalized_cycle_time_temp)
+    else:
+        mean_cycle_time = mystats.get_mean_cycle_time_user(user)
+        normalized_cycle_time = mystats.get_normalized_mean_cycle_time(user)
+        normalized_cycle_time_temp = mystats.get_normalized_cycle_time_per_temp(user)
+    return dict(mean_cycle_time=mean_cycle_time, normalized_cycle_time=normalized_cycle_time,
+                normalized_cycle_time_temp=normalized_cycle_time_temp)
 
 @app.route('/weather_feed/<string:user>', methods=['GET', 'POST'])
 def show_weather_info(user):
@@ -139,7 +173,6 @@ def show_weather_info(user):
         hum = myweather.get_humidity(lat, lon)
         mydict = dict(temp=temp, rain=rain, hum=hum)
         return json.dumps(mydict, indent=4)
-
 
 @app.route('/rack_user/<string:user>')
 def display(user):
