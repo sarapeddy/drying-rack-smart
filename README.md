@@ -45,6 +45,5 @@ Per il lato server e per la realizzazione di API Rest in grado di ricevere richi
 Lo script Flask si connette inoltre alla API di OpenWeather per ottenere dati meteo a date coordinate. Inoltre si occupa di calcolare statistiche sui dati conservati sul DB
 
 TODO
-- collegamento al db reale
-- operazioni CRUD
+- deploying Flask su AWS
 - documentazione Swagger
