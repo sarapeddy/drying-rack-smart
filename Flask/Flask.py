@@ -4,6 +4,8 @@ from flask import Flask, request, session, render_template, abort
 from flask_restx import Api, Resource
 from configparser import ConfigParser
 from OpenWeather import OpenWeather
+from Stats import Statistics
+from Login import Login
 
 appname = "Smart Drying-rack"
 app = Flask(appname)
@@ -69,23 +71,105 @@ def hello_name():
         response += '[Not Authenticated]'
     return response
 
-@app.route('/new_user')
+@app.route('/registration/', methods=['GET', 'POST'])
 def add_user_view():
+    if request.method == 'POST':
+        data = receive_registration_form()
+        s = check(data)
+        #print(s)
+
+        # insert new user in db
+
+        return s
     return render_template('add.html')
 
-@app.route('/sensors')
-def func1():
-    # TODO
-    # visione sensori, nomi, dati, statistiche,...
-    return "Sensors --> DHT11, ..."
+def check(data):
+
+    longitude = str(data.pop())
+    latitude = str(data.pop())
+    password_utente = str(data.pop())
+    rack_user = str(data.pop())
+
+    print(rack_user, password_utente, latitude, longitude)
+
+    # check credentials with db
+    mylogin = Login(cur)
+    response1 = mylogin.lat_lon_control(latitude, longitude)
+    response2 = mylogin.check_db(rack_user, password_utente)
+
+    return 'ok'
+
+def receive_registration_form():
+    temp = []
+    temp.append(request.form.get("inputName"))
+    temp.append(request.form.get("inputPassword"))
+    temp.append(request.form.get("lat"))
+    temp.append(request.form.get("lon"))
+    return temp
+
+@app.route('/credentials', methods=['POST'])
+def check_credentials():
+    try:
+        result = check_rack_user(request.get_json())
+        if result:
+            return "Login"
+    except KeyError:
+        return "Uncorrect json format"
+    return "Uncorrect username or/and password"
+
+
+def check_rack_user(user):
+    query = f"select user_name, pin from rack_user " \
+            f"where pin='{user['password']}' and user_name='{user['username']}';"
+    cur.execute(query)
+    result = cur.fetchall()
+    return result
+
+
+@app.route('/drying-cycle', methods=['POST'])
+def create_new_drying_clycle():
+    request_data = request.get_json()
+    query = f"insert into drying_cycle (`user_name`) " \
+            f"values ('{request_data['user']}');"
+    cur.execute(query)
+    cnx.commit()
+    return str(cur.lastrowid)
+
 
 @app.route('/sensors/data', methods=['POST'])
 def receive_json():
     request_data = request.get_json()
-    print(request_data)
-    # TODO
-    # inserire dati dei sensori nel db
-    return request_data
+    query = f"insert into sensor_feed(`air_temperature`, `is_raining`, `cloth_weight`, `cycle_id`, " \
+            f"`cloth_humidity`, `air_humidity`) " \
+            f"values({request_data['air_temperature']}, " \
+            f"{request_data['is_raining']}, {request_data['cloth_weight']}, " \
+            f"{request_data['cycle_id']}, {request_data['cloth_humidity']}, " \
+            f"{request_data['air_humidity']});"
+
+    cur.execute(query)
+    cnx.commit()
+    return str(cur.lastrowid)
+
+
+@app.route('/stats/', defaults={'user' : None})
+@app.route('/stats/<string:user>')
+def show_stats(user = None):
+    mystats = Statistics(cur)
+    mean_cycle_time = 0
+    normalized_cycle_time = 0
+    normalized_cycle_time_temp = 0
+    if user is None:
+        mean_cycle_time = mystats.get_mean_cycle_time_user()
+        normalized_cycle_time = mystats.get_normalized_mean_cycle_time()
+        normalized_cycle_time_temp = mystats.get_normalized_cycle_time_per_temp()
+        return dict(mean_cycle_time=mean_cycle_time, normalized_cycle_time=normalized_cycle_time,
+                    normalized_cycle_time_temp=normalized_cycle_time_temp)
+    else:
+        mean_cycle_time = mystats.get_mean_cycle_time_user(user)
+        normalized_cycle_time = mystats.get_normalized_mean_cycle_time(user)
+        normalized_cycle_time_temp = mystats.get_normalized_cycle_time_per_temp(user)
+    return dict(mean_cycle_time=mean_cycle_time, normalized_cycle_time=normalized_cycle_time,
+                normalized_cycle_time_temp=normalized_cycle_time_temp)
 
 @app.route('/weather_feed/<string:user>', methods=['GET', 'POST'])
 def show_weather_info(user):
@@ -106,8 +190,8 @@ def show_weather_info(user):
 def display(user):
     if user is None:
         return abort(404)
-    #result = select_sensor_feed(user)
-    result = select_start_finish_time(user)
+
+    result = select_last_sensor_feed(user)
 
     r = [dict((cur.description[i][0], value) for i, value in enumerate(row)) for row in result]
     if 'application/json' in request.headers:
