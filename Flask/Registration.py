@@ -11,14 +11,14 @@ class Registration:
             lon = float(lon)
         except Exception as e:
             print(e)
-            return 'Error'
+            return 'Error: use dot not comma'
 
         if (lat < -90) or (lat > 90):
-            return 'Insert a correct latitude'
+            return 'Insert a correct latitude (-90/90)'
         elif (lon < -180) or (lon > 180):
-            return 'Insert a correct longitude'
+            return 'Insert a correct longitude (-180/180)'
 
-        return True
+        return "True"
 
     @staticmethod
     def check_pwd(pwd):
@@ -31,7 +31,7 @@ class Registration:
             return 'Please insert a correct user and a correct password'
 
         if not self.check_pwd(password):
-            return 'Please insert a correct password'
+            return 'Please insert a correct password (at least 8 characters)'
 
         # seleziona user e pin
         query = f"select user_name " \
@@ -49,4 +49,4 @@ class Registration:
             if i[0] == username:
                 return 'Username already in use'
 
-        return True
+        return "True"

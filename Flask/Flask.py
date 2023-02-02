@@ -77,21 +77,26 @@ def hello_name():
 @app.route('/registration-bot', methods=['POST'])
 def add_user():
     data = request.get_json()
-    if check_json(data):
+    s = check_json(data)
+    if s == 'True':
         create_new_user_json(data)
         return data['username'] + ' signed up'
-    return data['username']
+    return data['username'] + ' ' + s
 
 
 def check_json(data):
     print(data)
     myreg = Registration(cur)
     response1 = myreg.lat_lon_control(data['latitude'], data['longitude'])
+    if response1 != 'True':
+        return response1
     response2 = myreg.check_db(data['username'], data['password'])
+    if response2 != 'True':
+        return response2
     print(response1, response2)
     if response1 == response2:
-        return True
-    return False
+        return 'True'
+    return response1 + ' ' + response2
 
 
 def create_new_user_json(request_data):
