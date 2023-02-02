@@ -1,14 +1,12 @@
 import json
-from configparser import ConfigParser
-
 import mysql.connector
 from flask import Flask, request, session, render_template, abort
 from flask_restx import Api
-
-import Queries
+from configparser import ConfigParser
 from OpenWeather import OpenWeather
-from Registration import Registration
 from Stats import Statistics
+from Registration import Registration
+import Queries
 
 appname = "Smart Drying-rack"
 app = Flask(appname)
@@ -229,7 +227,7 @@ def show_weather_info(user):
         return abort(405)
     else:
         myweather = OpenWeather(key_weather)
-        result = select_lat_lon(user)
+        result = Queries.select_lat_lon(user, cur)
         lat = result[0][0]
         lon = result[0][1]
         temp = myweather.get_temperature(lat, lon)
@@ -244,113 +242,13 @@ def display(user):
     if user is None:
         return abort(404)
 
-    result = select_last_sensor_feed(user)
+    result = Queries.select_last_sensor_feed(user, cur)
 
     r = [dict((cur.description[i][0], value) for i, value in enumerate(row)) for row in result]
     if 'application/json' in request.headers:
         return json.dumps(r, indent=4, separators=(',', ': '), default=str) if r else None
     else:
         return r if r else None
-
-
-def select_lat_lon(user):
-    # seleziona latitudine e longitudine
-    query = f"select lat, lon " \
-            f"from rack_user " \
-            f"where user_name like " \
-            f"'{user}' ;"
-    cur.execute(query)
-    result = cur.fetchall()
-    return result
-
-
-def select_sensor_feed(user):
-    # seleziona tutti i sensor feed dell'ultimo ciclo asciugatura di un utente
-    query = f"select * from sensor_feed join drying_cycle on(sensor_feed.cycle_id = drying_cycle.id) " \
-            f"where drying_cycle.id >= all( select drying_cycle.id from drying_cycle join rack_user " \
-            f"on (drying_cycle.user_name = rack_user.user_name) " \
-            f"where rack_user.user_name like '{user}');"
-    cur.execute(query)
-    result = cur.fetchall()
-    return result
-
-
-def select_last_sensor_feed(user):
-    # seleziona l'ultimo sensor feed dell'ultimo ciclo asciugatura dato un utente
-    query = f"select * from sensor_feed join drying_cycle on(sensor_feed.cycle_id = drying_cycle.id) " \
-            f"where drying_cycle.id >= all(select drying_cycle.id from drying_cycle join rack_user " \
-            f"on(drying_cycle.user_name = rack_user.user_name) " \
-            f"where rack_user.user_name like '{user}') and sensor_feed.id >= all(select sensor_feed.id " \
-            f"from sensor_feed join drying_cycle on(sensor_feed.cycle_id = drying_cycle.id)) ;"
-
-    cur.execute(query)
-    result = cur.fetchall()
-    return result
-
-
-def select_last_weather_feed(user):
-    # seleziona l'ultimo weather_feed dato un utente
-    query = f"select * from weather_feed join rack_user " \
-            f"on( weather_feed.user_name like rack_user.user_name) " \
-            f"where weather_feed.id >= all(select weather_feed.user_name from weather_feed join rack_user " \
-            f"on( weather_feed.user_name = rack_user.user_name) " \
-            f" where rack_user.user_name like '{user}') ;"
-    cur.execute(query)
-    result = cur.fetchall()
-    return result
-
-
-def select_all_cycles(user):
-    # seleziona tutti i cicli conclusi di un utente (utile per fare medie e statistiche)
-    query = f"select * from drying_cycle " \
-            f"where drying_cycle.user_name like '{user}' " \
-            f"and drying_cycle.is_active is false ;"
-    cur.execute(query)
-    result = cur.fetchall()
-    return result
-
-
-def select_closing_time_drying_cycle(user):
-    # seleziona il momento di chiusura dell'ultimo ciclo di asciugatura concluso di un dato utente
-    query = f"select * from sensor_feed s join drying_cycle d " \
-            f"on (s.cycle_id = d.id) " \
-            f"where d.user_name like '{user}' " \
-            f"and d.is_active is false " \
-            f"and d.id >=all	(select d1.id from drying_cycle d1 " \
-            f"where d1.user_name like d.user_name " \
-            f"and d1.is_active is false) " \
-            f"and s.id >=all	(select s1.id from sensor_feed s1 " \
-            f"where s1.cycle_id = d.id) ;"
-    cur.execute(query)
-    result = cur.fetchall()
-    return result
-
-
-def select_start_finish_time(user):
-    # seleziona start_time e finish_time di tutti i cicli asciugatura di un utente
-    query = f"select d.start_time, s.sensor_time as finish_time " \
-            f"from drying_cycle d join sensor_feed s on (d.id = s.cycle_id) " \
-            f"where d.user_name like '{user}' " \
-            f"and is_active is false " \
-            f"and s.id >= all(select s1.id from sensor_feed s1 " \
-            f"where s1.cycle_id = s.cycle_id) ;"
-    cur.execute(query)
-    result = cur.fetchall()
-    return result
-
-
-def select_state(user):
-    # seleziona lo stato (dentro o fuori) degli stendini degli utenti vicini ad un certo utente(<10km)
-    query = f"select r.* from rack_user r join rack_user r1 " \
-            f"where r1.user_name like '{user}' " \
-            f"and r.user_name not like '{user}' " \
-            f"and r.is_active is true " \
-            f"and abs(r.lat-r1.lat)<=0.0753 " \
-            f"and abs(r.lon-r1.lon)<=0.0753 " \
-            f";"
-    cur.execute(query)
-    result = cur.fetchall()
-    return result
 
 
 if __name__ == '__main__':
