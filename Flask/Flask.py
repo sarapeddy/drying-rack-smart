@@ -143,7 +143,7 @@ def create_new_drying_clycle():
 
 
 @app.route('/sensors/data', methods=['POST'])
-def receive_json():
+def receive_sensor_feed():
     request_data = request.get_json()
     query = f"insert into sensor_feed(`air_temperature`, `is_raining`, `cloth_weight`, `cycle_id`, " \
             f"`cloth_humidity`, `air_humidity`) " \
