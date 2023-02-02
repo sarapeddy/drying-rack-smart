@@ -5,7 +5,7 @@ from flask_restx import Api, Resource
 from configparser import ConfigParser
 from OpenWeather import OpenWeather
 from Stats import Statistics
-from Login import Login
+from Registration import Registration
 
 appname = "Smart Drying-rack"
 app = Flask(appname)
@@ -76,11 +76,11 @@ def add_user_view():
     if request.method == 'POST':
         data = receive_registration_form()
         s = check(data)
-        #print(s)
 
-        # insert new user in db
-
-        return s
+        if s:
+            # insert new user in db
+            return render_template('afterRegistration.html')
+        return render_template('fail.html')
     return render_template('add.html')
 
 def check(data):
@@ -93,11 +93,13 @@ def check(data):
     print(rack_user, password_utente, latitude, longitude)
 
     # check credentials with db
-    mylogin = Login(cur)
-    response1 = mylogin.lat_lon_control(latitude, longitude)
-    response2 = mylogin.check_db(rack_user, password_utente)
-
-    return 'ok'
+    myreg = Registration(cur)
+    response1 = myreg.lat_lon_control(latitude, longitude)
+    response2 = myreg.check_db(rack_user, password_utente)
+    print(response1, response2)
+    if response1 == response2:
+        return True
+    return False
 
 def receive_registration_form():
     temp = []
