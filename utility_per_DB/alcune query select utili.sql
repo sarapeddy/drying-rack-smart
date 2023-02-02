@@ -89,7 +89,8 @@ group by(s.cycle_id);
 #seleziona il numero di cicli di asciugatura di ogni utente nell'ultimo mese
 select count(distinct d.id) as total_cycles, d.user_name from drying_cycle d 
 where timestampdiff(day, d.start_time, now()) < 30
-group by d.user_name;
+group by d.user_name
+order by 1 desc;
 
 #QUERY DI INSERT
 #nuovo utente
@@ -142,6 +143,8 @@ values(21, 0, 22, 5, 36, 50);
 
 select * from drying_cycle;
 select * from sensor_feed;
+
+select * from rack_user
 											
         
 
