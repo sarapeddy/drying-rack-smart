@@ -17,7 +17,7 @@ password = config.get('Database', 'password')
 host = config.get('Database', 'host')
 database = config.get('Database', 'database')
 raise_on = bool(config.get('Database', 'raise_on_warnings'))
-#print(user, password, host, database, raise_on, type(raise_on))
+# print(user, password, host, database, raise_on, type(raise_on))
 
 try:
     cnx = mysql.connector.connect(user=user, password=password, host=host, db=database)
@@ -76,12 +76,30 @@ def hello_name():
 @app.route('/registration-bot', methods=['POST'])
 def add_user():
     data = request.get_json()
-    s = check_json(data)
-    return s
+    if check_json(data):
+        create_new_user_json(data)
+        return data['username'] + ' signed up'
+    return data['username']
 
 
 def check_json(data):
-    return data
+    print(data)
+    myreg = Registration(cur)
+    response1 = myreg.lat_lon_control(data['latitude'], data['longitude'])
+    response2 = myreg.check_db(data['username'], data['password'])
+    print(response1, response2)
+    if response1 == response2:
+        return True
+    return False
+
+
+def create_new_user_json(request_data):
+    query = f"insert into rack_user (`user_name`, pin, lat, lon) " \
+            f"values ('{request_data['username']}', '{request_data['password']}', {request_data['latitude']}, " \
+            f" {request_data['longitude']}) ;"
+    cur.execute(query)
+    cnx.commit()
+    return str(cur.lastrowid)
 
 
 @app.route('/registration/', methods=['GET', 'POST'])
@@ -176,7 +194,7 @@ def receive_sensor_feed():
     return str(cur.lastrowid)
 
 
-@app.route('/stats/', defaults={'user':None})
+@app.route('/stats/', defaults={'user': None})
 @app.route('/stats/<string:user>')
 def show_stats(user=None):
     mystats = Statistics(cur)
