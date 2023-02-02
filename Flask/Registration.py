@@ -43,7 +43,9 @@ class Registration:
         if not result:
             return 'Please insert a correct user and a correct password'
 
-        if username in result:
-            return 'Username already in use'
+        for i in result:
+            print(i[0], username)
+            if i[0] == username:
+                return 'Username already in use'
 
         return True
