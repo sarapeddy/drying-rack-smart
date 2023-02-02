@@ -90,7 +90,6 @@ class Bridge:
                                       json={'user': self.user['username']})
                     self.cycle_id = int(r.text)
                 else:
-                    print("ciao")
                     buffer = 'finish'
                     r = requests.get(url=f"http://{self.config.get('Api', 'host')}:5000/{self.cycle_id}/inactive")
                     self.cycle_id = None
@@ -116,7 +115,6 @@ class Bridge:
                         self.new_state = json_data["state"]
                     except KeyError:
                         if json_data != {} and self.current_state == 1:
-                            print(json_data)
                             r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/sensors/data", json=json_data)
                             if self.check_rain(json_data["is_raining"]):
                                 print("Send message to near drying rack")
