@@ -86,3 +86,11 @@ def select_total_cycles_last_month(cur):
     cur.execute(query)
     result = cur.fetchall()
     return result
+
+
+def update_status_drying_cycle(cycle_id, cnx, cur):
+    query = f"update drying_cycle set drying_cycle.is_active = 0 " \
+            f"where drying_cycle.id = {cycle_id};"
+    cur.execute(query)
+    cnx.commit()
+    return cur.lastrowid

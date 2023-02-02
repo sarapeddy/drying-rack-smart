@@ -1,11 +1,14 @@
 import json
+from configparser import ConfigParser
+
 import mysql.connector
 from flask import Flask, request, session, render_template, abort
-from flask_restx import Api, Resource
-from configparser import ConfigParser
+from flask_restx import Api
+
+import Queries
 from OpenWeather import OpenWeather
-from Stats import Statistics
 from Registration import Registration
+from Stats import Statistics
 
 appname = "Smart Drying-rack"
 app = Flask(appname)
@@ -155,6 +158,11 @@ def receive_sensor_feed():
     cur.execute(query)
     cnx.commit()
     return str(cur.lastrowid)
+
+
+@app.route('/<int:drying_cycle>/inactive')
+def set_drying_cycle_inactive(drying_cycle):
+    return str(Queries.update_status_drying_cycle(drying_cycle, cnx, cur))
 
 
 @app.route('/stats/', defaults={'user': None})
