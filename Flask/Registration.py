@@ -1,11 +1,11 @@
 class Registration:
     # Per usare la classe: passare al costruttore direttamente il cursore di una connessione a mysql già stabilita
-    # e user e pwd
+    # user, pwd, lat, lon
     def __init__(self, cur):
         self.cur = cur
 
-    def lat_lon_control(self, lat, lon):
-
+    @staticmethod
+    def lat_lon_control(lat, lon):
         try:
             lat = float(lat)
             lon = float(lon)
@@ -20,7 +20,8 @@ class Registration:
 
         return True
 
-    def check_pwd(self, pwd):
+    @staticmethod
+    def check_pwd(pwd):
         if len(pwd) < 8:
             return False
         return True
@@ -44,7 +45,7 @@ class Registration:
             return 'Please insert a correct user and a correct password'
 
         for i in result:
-            print(i[0], username)
+            # print(i[0], username)
             if i[0] == username:
                 return 'Username already in use'
 
