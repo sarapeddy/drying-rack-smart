@@ -86,6 +86,11 @@ group by(s.cycle_id);
 select avg(s.air_temperature) as avg_temperature, s.cycle_id from sensor_feed
 group by(s.cycle_id);
 
+#seleziona il numero di cicli di asciugatura di ogni utente nell'ultimo mese
+select count(distinct d.id) as total_cycles, d.user_name from drying_cycle d 
+where timestampdiff(day, d.start_time, now()) < 30
+group by d.user_name;
+
 #QUERY DI INSERT
 #nuovo utente
 insert into rack_user(user_name, pin, lat, lon, is_outside, is_active)
@@ -136,6 +141,7 @@ insert into sensor_feed(air_temperature, is_raining, cloth_weight, cycle_id, clo
 values(21, 0, 22, 5, 36, 50);
 
 select * from drying_cycle;
+select * from sensor_feed;
 											
         
 

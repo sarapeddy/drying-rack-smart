@@ -147,6 +147,8 @@ class Statistics:
                     else:
                         datediff[1] = datediff[1] +((j[1] - j[0]).total_seconds())*100/(j[2] - j[3])
         return datediff
+    def get_n_cycles_user(self, user):
+        pass
 '''
 if __name__ == '__main__':
     testdb()
