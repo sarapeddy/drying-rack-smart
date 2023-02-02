@@ -13,11 +13,11 @@ app = Flask(appname)
 config = ConfigParser()
 config.read('config.ini')
 user = config.get('Database', 'user')
-password =config.get('Database', 'password')
-host =config.get('Database', 'host')
-database =config.get('Database', 'database')
+password = config.get('Database', 'password')
+host = config.get('Database', 'host')
+database = config.get('Database', 'database')
 raise_on = bool(config.get('Database', 'raise_on_warnings'))
-#print(user, password, host, database, raise_on, type(raise_on))
+# print(user, password, host, database, raise_on, type(raise_on))
 
 try:
     cnx = mysql.connector.connect(user=user, password=password, host=host, db=database)
@@ -38,6 +38,7 @@ def hello():
     """
     testdb()
     return '<h1>Smart Drying-Rack<h1>'
+
 
 def testdb():
     try:
@@ -71,6 +72,7 @@ def hello_name():
         response += '[Not Authenticated]'
     return response
 
+
 @app.route('/registration/', methods=['GET', 'POST'])
 def add_user_view():
     if request.method == 'POST':
@@ -83,8 +85,8 @@ def add_user_view():
         return render_template('fail.html')
     return render_template('add.html')
 
-def check(data):
 
+def check(data):
     longitude = str(data.pop())
     latitude = str(data.pop())
     password_utente = str(data.pop())
@@ -101,6 +103,7 @@ def check(data):
         return True
     return False
 
+
 def receive_registration_form():
     temp = []
     temp.append(request.form.get("inputName"))
@@ -108,6 +111,7 @@ def receive_registration_form():
     temp.append(request.form.get("lat"))
     temp.append(request.form.get("lon"))
     return temp
+
 
 @app.route('/credentials', methods=['POST'])
 def check_credentials():
@@ -153,9 +157,9 @@ def receive_json():
     return str(cur.lastrowid)
 
 
-@app.route('/stats/', defaults={'user' : None})
+@app.route('/stats/', defaults={'user': None})
 @app.route('/stats/<string:user>')
-def show_stats(user = None):
+def show_stats(user=None):
     mystats = Statistics(cur)
     mean_cycle_time = 0
     normalized_cycle_time = 0
@@ -173,6 +177,7 @@ def show_stats(user = None):
     return dict(mean_cycle_time=mean_cycle_time, normalized_cycle_time=normalized_cycle_time,
                 normalized_cycle_time_temp=normalized_cycle_time_temp)
 
+
 @app.route('/weather_feed/<string:user>', methods=['GET', 'POST'])
 def show_weather_info(user):
     if request.method == 'POST':
@@ -188,6 +193,7 @@ def show_weather_info(user):
         mydict = dict(temp=temp, rain=rain, hum=hum)
         return json.dumps(mydict, indent=4)
 
+
 @app.route('/rack_user/<string:user>')
 def display(user):
     if user is None:
@@ -201,6 +207,7 @@ def display(user):
     else:
         return r if r else None
 
+
 def select_lat_lon(user):
     # seleziona latitudine e longitudine
     query = f"select lat, lon " \
@@ -211,6 +218,7 @@ def select_lat_lon(user):
     result = cur.fetchall()
     return result
 
+
 def select_sensor_feed(user):
     # seleziona tutti i sensor feed dell'ultimo ciclo asciugatura di un utente
     query = f"select * from sensor_feed join drying_cycle on(sensor_feed.cycle_id = drying_cycle.id) " \
@@ -220,6 +228,7 @@ def select_sensor_feed(user):
     cur.execute(query)
     result = cur.fetchall()
     return result
+
 
 def select_last_sensor_feed(user):
     # seleziona l'ultimo sensor feed dell'ultimo ciclo asciugatura dato un utente
@@ -233,6 +242,7 @@ def select_last_sensor_feed(user):
     result = cur.fetchall()
     return result
 
+
 def select_last_weather_feed(user):
     # seleziona l'ultimo weather_feed dato un utente
     query = f"select * from weather_feed join rack_user " \
@@ -244,6 +254,7 @@ def select_last_weather_feed(user):
     result = cur.fetchall()
     return result
 
+
 def select_all_cycles(user):
     # seleziona tutti i cicli conclusi di un utente (utile per fare medie e statistiche)
     query = f"select * from drying_cycle " \
@@ -252,6 +263,7 @@ def select_all_cycles(user):
     cur.execute(query)
     result = cur.fetchall()
     return result
+
 
 def select_closing_time_drying_cycle(user):
     # seleziona il momento di chiusura dell'ultimo ciclo di asciugatura concluso di un dato utente
@@ -268,6 +280,7 @@ def select_closing_time_drying_cycle(user):
     result = cur.fetchall()
     return result
 
+
 def select_start_finish_time(user):
     # seleziona start_time e finish_time di tutti i cicli asciugatura di un utente
     query = f"select d.start_time, s.sensor_time as finish_time " \
@@ -279,6 +292,7 @@ def select_start_finish_time(user):
     cur.execute(query)
     result = cur.fetchall()
     return result
+
 
 def select_state(user):
     # seleziona lo stato (dentro o fuori) degli stendini degli utenti vicini ad un certo utente(<10km)
