@@ -17,7 +17,7 @@ password = config.get('Database', 'password')
 host = config.get('Database', 'host')
 database = config.get('Database', 'database')
 raise_on = bool(config.get('Database', 'raise_on_warnings'))
-# print(user, password, host, database, raise_on, type(raise_on))
+#print(user, password, host, database, raise_on, type(raise_on))
 
 try:
     cnx = mysql.connector.connect(user=user, password=password, host=host, db=database)
@@ -73,6 +73,17 @@ def hello_name():
     return response
 
 
+@app.route('/registration-bot', methods=['POST'])
+def add_user():
+    data = request.get_json()
+    s = check_json(data)
+    return s
+
+
+def check_json(data):
+    return data
+
+
 @app.route('/registration/', methods=['GET', 'POST'])
 def add_user_view():
     if request.method == 'POST':
@@ -80,17 +91,17 @@ def add_user_view():
         s = check(data)
 
         if s:
-            # insert new user in db
+            create_new_user(data)
             return render_template('afterRegistration.html')
         return render_template('fail.html')
     return render_template('add.html')
 
 
 def check(data):
-    longitude = str(data.pop())
-    latitude = str(data.pop())
-    password_utente = str(data.pop())
-    rack_user = str(data.pop())
+    longitude = str(data[3])
+    latitude = str(data[2])
+    password_utente = str(data[1])
+    rack_user = str(data[0])
 
     print(rack_user, password_utente, latitude, longitude)
 
@@ -102,6 +113,14 @@ def check(data):
     if response1 == response2:
         return True
     return False
+
+
+def create_new_user(data):
+    query = f"insert into rack_user (`user_name`, pin, lat, lon) " \
+            f"values ('{data[0]}', '{data[1]}', {data[2]}, {data[3]}) ;"
+    cur.execute(query)
+    cnx.commit()
+    return str(cur.lastrowid)
 
 
 def receive_registration_form():
@@ -157,7 +176,7 @@ def receive_sensor_feed():
     return str(cur.lastrowid)
 
 
-@app.route('/stats/', defaults={'user': None})
+@app.route('/stats/', defaults={'user':None})
 @app.route('/stats/<string:user>')
 def show_stats(user=None):
     mystats = Statistics(cur)
