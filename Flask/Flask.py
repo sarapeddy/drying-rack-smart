@@ -91,6 +91,16 @@ def query_records():
 
 @app.route('/test')
 def hello_name():
+    """
+    ---
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
     name = request.args.get('name')
     if name is None:
         name = request.cookies.get('name', 'Human')
@@ -105,6 +115,30 @@ def hello_name():
 
 @app.route('/registration-bot', methods=['POST'])
 def add_user():
+    """
+    ---
+    summary: User registration with Telegram Bot
+    description: User registration made by Telegram Bot
+    requestBody:
+        content:
+            application/json:
+                schema:
+                    type: object
+                    properties:
+                        username:
+                            type: string
+                            example: mariorossi
+                        password:
+                            type: string
+                            example: 12345678
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
     data = request.get_json()
     s = check_json(data)
     if s == 'True':
@@ -139,6 +173,16 @@ def create_new_user_json(request_data):
 
 @app.route('/registration/', methods=['GET', 'POST'])
 def add_user_view():
+    """
+    ---
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
     if request.method == 'POST':
         data = receive_registration_form()
         s = check(data)
@@ -216,6 +260,16 @@ def check_rack_user(user):
 
 @app.route('/drying-cycle', methods=['POST'])
 def create_new_drying_clycle():
+    """
+    ---
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
     request_data = request.get_json()
     query = f"insert into drying_cycle (`user_name`) " \
             f"values ('{request_data['user']}');"
@@ -226,6 +280,16 @@ def create_new_drying_clycle():
 
 @app.route('/sensors/data', methods=['POST'])
 def receive_sensor_feed():
+    """
+    ---
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
     request_data = request.get_json()
     query = f"insert into sensor_feed(`air_temperature`, `is_raining`, `cloth_weight`, `cycle_id`, " \
             f"`cloth_humidity`, `air_humidity`) " \
@@ -241,12 +305,32 @@ def receive_sensor_feed():
 
 @app.route('/<int:drying_cycle>/inactive')
 def set_drying_cycle_inactive(drying_cycle):
+    """
+    ---
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
     return str(Queries.update_status_drying_cycle(drying_cycle, cnx, cur))
 
 
 @app.route('/stats/', defaults={'user': None})
 @app.route('/stats/<string:user>')
 def show_stats(user=None):
+    """
+    ---
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
     mystats = Statistics(cur)
     mean_cycle_time = 0
     normalized_cycle_time = 0
@@ -267,6 +351,16 @@ def show_stats(user=None):
 
 @app.route('/weather_feed/<string:user>', methods=['GET', 'POST'])
 def show_weather_info(user):
+    """
+    ---
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
     if request.method == 'POST':
         return abort(405)
     else:
@@ -283,6 +377,16 @@ def show_weather_info(user):
 
 @app.route('/rack_user/<string:user>')
 def display(user):
+    """
+    ---
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
     if user is None:
         return abort(404)
 
