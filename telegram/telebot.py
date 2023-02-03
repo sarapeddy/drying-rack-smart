@@ -8,6 +8,8 @@ BOTKEY = '6152911022:AAHcG-1rkKjBmuv_dZw7iXGrg8jGLbPempM'
 API_LOCATION = 'http://localhost:80'
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
+
+#POSSIBILI STATI DI UN UTENTE:
 UNLOGGED = 0
 NEED_USERNAME_REG = 1
 NEED_PASSWORD_REG = 2
@@ -18,6 +20,7 @@ NEED_PASSWORD_LOG = 5
 
 LOGGED = 6
 
+#Classe contenente i dati degli utenti
 user_data = {}
 class user:
     def __init__(self):
@@ -26,6 +29,7 @@ class user:
         self.longitude = -1
         self.status = UNLOGGED
 
+#Funzione di verifica credenziali in fase di login
 def check_credentials(username, password):
     dictionary = {}
     dictionary['username'] = username
@@ -39,6 +43,7 @@ def check_credentials(username, password):
     else:
         return UNLOGGED, 'Username and or password incorrect, /login to try again or /register if you don\'t have an account!'
 
+#Insert tramite api di un nuovo utente
 def insert_new_user(username,lat, lon, password):
     dictionary = {}
     dictionary['username'] = username
@@ -48,7 +53,7 @@ def insert_new_user(username,lat, lon, password):
     try:
         response = requests.post(f'{API_LOCATION}/registration-bot', json = dictionary)
     except ConnectionError:
-        return UNLOGGED, 'Connection Error: api probably offline, please retry later!'
+        return UNLOGGED, 'Connection Error: API probably offline, please retry later!'
     print(response.text)
     if 'signed up' in response.text:
         return LOGGED, f'Welcome {username}! You are now part of the stendAPP community'
@@ -57,21 +62,31 @@ def insert_new_user(username,lat, lon, password):
     if 'Username' in response.text:
         return UNLOGGED, 'The username was alredy taken, /login if that is you, or /register to try a new one'
 
-def parse_coordinates(text):
-    coord = text.split(',')
-    if len(coord) != 2:
-        return -1, -1
-    lat = float(coord[0])
-    lon = float(coord[1])
-    if not((lat >=0 and lat <=90) and(lon >=0 and lon<=90)):
-        return -1, -1
-    return lat, lon
-
+def get_stats(username = ''):
+    try:
+        response = requests.get(f'{API_LOCATION}/stats/')
+    except ConnectionError:
+        return 'Connection Error: API probably offline, please retry later'
+    dictionary = response.json()
+    global_avg = round(dictionary['mean_cycle_time'] /60 /60, 2)
+    normalized_global_avg = round(dictionary['normalized_cycle_time'] /60 /60, 2)
+    normalized_avg15 = round(dictionary['normalized_cycle_time_temp'][0] /60 /60, 2)
+    normalized_avg20 = round(dictionary['normalized_cycle_time_temp'][1] /60 /60, 2)
+    normalized_avg25 = round(dictionary['normalized_cycle_time_temp'][2] /60/60, 2)
+    return f"Here are the global drying time expectations:\n" \
+            f"-Expected drying time (not normalized): {global_avg} hours\n" \
+            f"-Expected drying time (normalized): {normalized_global_avg} hours\n"\
+            f"-Expected drying time during the winter: {normalized_avg15} hours\n"\
+            f"-Expected drying time indoor: {normalized_avg20} hours \n"\
+            f"-Expected drying time during the summer: {normalized_avg25} hours\n"
+#Handler del comando /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #Comando iniziale, inizializza il proprio chat.id
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Hi! I am your smart drying rack! please /login or /register to the stendApp Community!")
     user_data[update.effective_chat.id] = user()
+    print('ciao')
 
+#Handler del comando di /register
 async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #Inizia il processo di registrazione
     c_id = update.effective_chat.id
@@ -91,6 +106,7 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="You were logging, finish that procedure before trying something else!")
 
+#Gestore dei messaggi: (tutto ciò che non è comando)
 async def message_manager(update: Update, context: ContextTypes.DEFAULT_TYPE):
     c_id = update.effective_chat.id
     message = update.message.text
@@ -114,7 +130,8 @@ async def message_manager(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif user_data[c_id].status == NEED_PASSWORD_LOG:
         user_data[c_id].status, response = check_credentials(user_data[c_id].username, message)
         await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
-            
+
+#Handler del comando login       
 async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
     c_id = update.effective_chat.id
     if not c_id in user_data.keys():
@@ -131,6 +148,7 @@ async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="You were registering, finish that procedure before trying something else!")
 
+#Handler del comando /logout
 async def logout(update: Update, context: ContextTypes.DEFAULT_TYPE):
     c_id = update.effective_chat.id
     if not c_id in user_data.keys():
@@ -141,8 +159,9 @@ async def logout(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_data[c_id].status = UNLOGGED
         await context.bot.send_message(chat_id=update.effective_chat.id, text="You are now logged out, use /login or /register")
 
+#Handler della ricezione di posizioni
 async def position_manager(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    c_id = c_id = update.effective_chat.id
+    c_id = update.effective_chat.id
     if user_data[c_id].status == NEED_POSITION_REG:
         print(update.message.location)
         user_data[c_id].lat = update.message.location.latitude
@@ -152,6 +171,18 @@ async def position_manager(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="We didn't need that position!")
 
+#Handler per il comando /stats
+async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    c_id = update.effective_chat.id
+    if not c_id in user_data.keys():
+        user_data[c_id] = user()
+    if user_data[c_id].status != LOGGED:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="You need to login to use this command")
+        return
+    response = get_stats()
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+
+#Handler di messaggi ricorrenti a tutti gli utenti registrati
 async def callback_minute(context: ContextTypes.DEFAULT_TYPE):
     for i in user_data.keys():
         if user_data[i].status == LOGGED:
@@ -165,7 +196,8 @@ if __name__ == '__main__':
     msg_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), message_manager)
     pos_handler = MessageHandler(filters.LOCATION, position_manager)
     logout_handler = CommandHandler('logout', logout)
-    application.add_handlers((start_handler, register_handler,pos_handler, msg_handler, login_handler, logout_handler))
+    stats_handler = CommandHandler('stats', stats)
+    application.add_handlers((start_handler, register_handler,pos_handler, msg_handler, login_handler, logout_handler, stats_handler))
     job_queue = application.job_queue
     job_minute = job_queue.run_repeating(callback_minute, interval=120, first=30)
     application.run_polling()
