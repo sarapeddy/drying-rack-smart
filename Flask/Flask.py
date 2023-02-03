@@ -6,10 +6,12 @@ from configparser import ConfigParser
 from OpenWeather import OpenWeather
 from Stats import Statistics
 from Registration import Registration
+from flasgger import Swagger, LazyString, LazyJSONEncoder, swag_from
 import Queries
 
 appname = "Smart Drying-rack"
 app = Flask(appname)
+app.json_encoder = LazyJSONEncoder
 
 config = ConfigParser()
 config.read('config.ini')
@@ -19,6 +21,31 @@ host = config.get('Database', 'host')
 database = config.get('Database', 'database')
 raise_on = bool(config.get('Database', 'raise_on_warnings'))
 # print(user, password, host, database, raise_on, type(raise_on))
+
+swagger_template = dict(
+    info={
+        'title': LazyString(lambda: 'Drying Rack Smart'),
+        'version': LazyString(lambda: '1.0'),
+        'description': LazyString(lambda: 'This is the documentations about Flask Drying Rack Smart project Apis'),
+    },
+    host=LazyString(lambda: request.host)
+)
+swagger_config = {
+    "headers": [],
+    "specs": [
+        {
+            "endpoint": 'drying-rack',
+            "route": '/drying-rack.json',
+            "rule_filter": lambda rule: True,
+            "model_filter": lambda tag: True,
+        }
+    ],
+    "static_url_path": "/flasgger_static",
+    "swagger_ui": True,
+    "specs_route": "/apidocs/"
+}
+
+swagger = Swagger(app, template=swagger_template, config=swagger_config)
 
 try:
     cnx = mysql.connector.connect(user=user, password=password, host=host, db=database)
@@ -34,8 +61,10 @@ api = Api(app)
 @app.route('/')
 def hello():
     """
-    Home path
-    :return: Title
+    ---
+    responses:
+        200:
+            description: Check if the connection to the mysql db is correct
     """
     testdb()
     return '<h1>Smart Drying-Rack<h1>'
@@ -158,6 +187,16 @@ def receive_registration_form():
 
 @app.route('/credentials', methods=['POST'])
 def check_credentials():
+    """
+    ---
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
     try:
         result = check_rack_user(request.get_json())
         if result:
