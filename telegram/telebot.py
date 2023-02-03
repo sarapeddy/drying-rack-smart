@@ -1,4 +1,6 @@
+
 import logging
+from turtle import position
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, ContextTypes, filters
 import requests
@@ -59,6 +61,7 @@ def parse_coordinates(text):
     return lat, lon
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    #Comando iniziale, inizializza il proprio chat.id
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Hi! I am your smart drying rack! please /login or /register to the stendApp Community!")
     user_data[update.effective_chat.id] = user()
 
@@ -75,7 +78,7 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif user_data[c_id].status  == NEED_PASSWORD_REG:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Again, please insert your password!")
     elif user_data[c_id].status  == NEED_POSITION_REG:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Again, please insert your position!")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Again, please send your position!")
     elif user_data[c_id].status  == LOGGED:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="You are alredy logged in, to log out type /logout")
     else:
@@ -93,8 +96,9 @@ async def message_manager(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         user_data[c_id].status = NEED_POSITION_REG
         user_data[c_id].username = message
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Hello, {message}! Now please insert your position lat, lon')
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Hello, {message}! Now please send your position!')
     elif user_data[c_id].status == NEED_POSITION_REG:
+        '''
         lat, lon = parse_coordinates(message)
         if lat == -1 or lon == -1: 
             await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Sorry, {message}! you have inserted invalid coordinates, try again!')
@@ -102,7 +106,8 @@ async def message_manager(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_data[c_id].latitude = lat
         user_data[c_id].longitude = lon
         user_data[c_id].status = NEED_PASSWORD_REG
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Thank you, your position is {lat}, {lon}, now choose a password!')
+        '''
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Again, please send your position!')
     elif user_data[c_id].status == NEED_PASSWORD_REG:
         if insert_new_user(user_data[c_id].username, user_data[c_id].latitude, user_data[c_id].longitude, message) is True:
             user_data[c_id].status = LOGGED
@@ -137,6 +142,18 @@ async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=update.effective_chat.id, text="You are alredy logged in, to log out type /logout")
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="You were registering, finish that procedure before trying something else!")
+
+async def position_manager(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    c_id = c_id = update.effective_chat.id
+    if user_data[c_id].status == NEED_POSITION_REG:
+        print(update.message.location)
+        user_data[c_id].lat = update.message.location.latitude
+        user_data[c_id].lon = update.message.location.longitude
+        user_data[c_id].status = NEED_PASSWORD_REG
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Thank you! Now please insert your password!")
+    else:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="We didn't need that position!")
+
 if __name__ == '__main__':
     application = ApplicationBuilder().token(BOTKEY).build()
     
@@ -144,8 +161,6 @@ if __name__ == '__main__':
     register_handler = CommandHandler('register', register)
     login_handler = CommandHandler('login', login)
     msg_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), message_manager)
-    application.add_handler(start_handler)
-    application.add_handler(register_handler)
-    application.add_handler(msg_handler)
-    application.add_handler(login_handler)
+    pos_handler = MessageHandler(filters.LOCATION, position_manager)
+    application.add_handlers((start_handler, register_handler,pos_handler, msg_handler, login_handler))
     application.run_polling()
