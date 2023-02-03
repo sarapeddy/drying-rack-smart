@@ -119,21 +119,31 @@ def add_user():
     ---
     summary: User registration with Telegram Bot
     description: User registration made by Telegram Bot
-    requestBody:
-        content:
-            application/json:
-                schema:
-                    type: object
-                    properties:
-                        username:
-                            type: string
-                            example: mariorossi
-                        password:
-                            type: string
-                            example: 12345678
+    parameters:
+      - name: User
+        in: body
+        required: true
+        schema:
+            type: object
+            properties:
+                username:
+                    type: string
+                    example: mariorossi
+                password:
+                    type: string
+                    example: 12345678
+                latitude:
+                    type: string
+                    example: numeri da vedere
+                longitude:
+                    type: string
+                    example: numeri da vedere
     responses:
         200:
             description: OK
+            schema:
+                type: string
+                example: mariorossi signed up
         400:
             description: Client Error
         500:
@@ -175,6 +185,27 @@ def create_new_user_json(request_data):
 def add_user_view():
     """
     ---
+    summary: User registration
+    description: User registration made by web page
+    parameters:
+      - name: UserWeb
+        in: body
+        required: true
+        schema:
+            type: object
+            properties:
+                inputName:
+                    type: string
+                    example: mariorossi
+                inputPassword:
+                    type: string
+                    example: 12345678
+                lat:
+                    type: int64
+                    example: 42.6
+                lon:
+                    type: int64
+                    example: 10.8
     responses:
         200:
             description: OK
@@ -233,6 +264,21 @@ def receive_registration_form():
 def check_credentials():
     """
     ---
+    summary: Check if an user exists
+    description: Check if an user exists. It is an API called by the bridge to log in the Smart Drying Rack
+    parameters:
+      - name: UserCheck
+        in: body
+        required: true
+        schema:
+            type: object
+            properties:
+                password:
+                    type: string
+                    example: 12345678
+                username:
+                    type: string
+                    example: mariorossi
     responses:
         200:
             description: OK
@@ -262,6 +308,18 @@ def check_rack_user(user):
 def create_new_drying_clycle():
     """
     ---
+    summary: Create a new Drying Cycle
+    description: Create a new Drying Cycle. It's called when on the Arduino is tapped the button and the RGB led is green
+    parameters:
+      - name: NewDryingCycle
+        in: body
+        required: true
+        schema:
+            type: object
+            properties:
+                user:
+                    type: string
+                    example: mariorossi
     responses:
         200:
             description: OK
@@ -282,6 +340,33 @@ def create_new_drying_clycle():
 def receive_sensor_feed():
     """
     ---
+    summary: Create a new sensor feed
+    description: Create a new sensor feed. It is called by the bridge to send the sensor feeds.
+    parameters:
+      - name: NewDryingCycle
+        in: body
+        required: true
+        schema:
+            type: object
+            properties:
+                air_humidity:
+                    type: float
+                    example: 30.00
+                air_temperature:
+                    type: float
+                    example: 19.00
+                cloth_humidity:
+                    type: int64
+                    example: 300
+                cloth_weight:
+                    type: int64
+                    example: 600
+                is_raining:
+                    type: bool
+                    example: false
+                cycle_id:
+                    type: int64
+                    example: 57
     responses:
         200:
             description: OK
@@ -307,6 +392,16 @@ def receive_sensor_feed():
 def set_drying_cycle_inactive(drying_cycle):
     """
     ---
+    summary: Set inactive a Drying Cycle
+    description: Set inactive a Drying Cycle. It is called by the bridge if the Arduino button is pressed and the RGB led is red.
+    parameters:
+      - name: DryingCycle
+        description: It is the Drying Cycle ID
+        in: path
+        required: true
+        schema:
+            type: int
+            example: 57
     responses:
         200:
             description: OK
@@ -323,6 +418,15 @@ def set_drying_cycle_inactive(drying_cycle):
 def show_stats(user=None):
     """
     ---
+    summary: Returns the Statistics about the Drying Cycles
+    description: Returns the Statistics about the Drying Cycles. If it is given the user, the stats are calculated only on his data
+    parameters:
+      - name: UserID
+        in: path
+        required: false
+        schema:
+            type: string
+            example: mariorossi
     responses:
         200:
             description: OK
@@ -353,6 +457,15 @@ def show_stats(user=None):
 def show_weather_info(user):
     """
     ---
+    summary: Give a wheated feed based on the position given in the registration phase.
+    description: Give a wheated feed based on the position given in the registration phase.
+    parameters:
+      - name: User
+        in: path
+        required: true
+        schema:
+            type: string
+            example: mariorossi
     responses:
         200:
             description: OK
@@ -379,6 +492,15 @@ def show_weather_info(user):
 def display(user):
     """
     ---
+    summary: Give the last sensor feed made on the Drying Rack
+    description: Give the last sensor feed made on the Drying Rack
+    parameters:
+      - name: User
+        in: path
+        required: true
+        schema:
+            type: string
+            example: mariorossi
     responses:
         200:
             description: OK
