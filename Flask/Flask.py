@@ -152,7 +152,7 @@ def add_user():
     data = request.get_json()
     s = check_json(data)
     if s == 'True':
-        create_new_user_json(data)
+        Queries.create_new_user_json(data, cur, cnx)
         return data['username'] + ' signed up'
     return data['username'] + ' ' + s
 
@@ -170,15 +170,6 @@ def check_json(data):
     if response1 == response2:
         return 'True'
     return response1 + ' ' + response2
-
-
-def create_new_user_json(request_data):
-    query = f"insert into rack_user (`user_name`, pin, lat, lon) " \
-            f"values ('{request_data['username']}', '{request_data['password']}', {request_data['latitude']}, " \
-            f" {request_data['longitude']}) ;"
-    cur.execute(query)
-    cnx.commit()
-    return str(cur.lastrowid)
 
 
 @app.route('/registration/', methods=['GET', 'POST'])
@@ -215,49 +206,25 @@ def add_user_view():
             description: Internal Server Error
     """
     if request.method == 'POST':
-        data = receive_registration_form()
+        data = dict(request.form)
         s = check(data)
 
         if s:
-            create_new_user(data)
+            Queries.create_new_user_json(data, cur, cnx)
             return render_template('afterRegistration.html')
         return render_template('fail.html')
     return render_template('add.html')
 
 
 def check(data):
-    longitude = str(data[3])
-    latitude = str(data[2])
-    password_utente = str(data[1])
-    rack_user = str(data[0])
-
-    print(rack_user, password_utente, latitude, longitude)
-
     # check credentials with db
     myreg = Registration(cur)
-    response1 = myreg.lat_lon_control(latitude, longitude)
-    response2 = myreg.check_db(rack_user, password_utente)
+    response1 = myreg.lat_lon_control(data["latitude"], data["longitude"])
+    response2 = myreg.check_db(data["username"], data["password"])
     print(response1, response2)
     if response1 == response2:
         return True
     return False
-
-
-def create_new_user(data):
-    query = f"insert into rack_user (`user_name`, pin, lat, lon) " \
-            f"values ('{data[0]}', '{data[1]}', {data[2]}, {data[3]}) ;"
-    cur.execute(query)
-    cnx.commit()
-    return str(cur.lastrowid)
-
-
-def receive_registration_form():
-    temp = []
-    temp.append(request.form.get("inputName"))
-    temp.append(request.form.get("inputPassword"))
-    temp.append(request.form.get("lat"))
-    temp.append(request.form.get("lon"))
-    return temp
 
 
 @app.route('/credentials', methods=['POST'])
@@ -288,20 +255,12 @@ def check_credentials():
             description: Internal Server Error
     """
     try:
-        result = check_rack_user(request.get_json())
+        result = Queries.check_rack_user(request.get_json(), cur)
         if result:
             return "Login"
     except KeyError:
         return "Uncorrect json format"
     return "Uncorrect username or/and password"
-
-
-def check_rack_user(user):
-    query = f"select user_name, pin from rack_user " \
-            f"where pin='{user['password']}' and user_name='{user['username']}';"
-    cur.execute(query)
-    result = cur.fetchall()
-    return result
 
 
 @app.route('/drying-cycle', methods=['POST'])
@@ -328,12 +287,7 @@ def create_new_drying_clycle():
         500:
             description: Internal Server Error
     """
-    request_data = request.get_json()
-    query = f"insert into drying_cycle (`user_name`) " \
-            f"values ('{request_data['user']}');"
-    cur.execute(query)
-    cnx.commit()
-    return str(cur.lastrowid)
+    return Queries.create_new_drying_cycle(request.get_json(), cur, cnx)
 
 
 @app.route('/sensors/data', methods=['POST'])
@@ -375,17 +329,7 @@ def receive_sensor_feed():
         500:
             description: Internal Server Error
     """
-    request_data = request.get_json()
-    query = f"insert into sensor_feed(`air_temperature`, `is_raining`, `cloth_weight`, `cycle_id`, " \
-            f"`cloth_humidity`, `air_humidity`) " \
-            f"values({request_data['air_temperature']}, " \
-            f"{request_data['is_raining']}, {request_data['cloth_weight']}, " \
-            f"{request_data['cycle_id']}, {request_data['cloth_humidity']}, " \
-            f"{request_data['air_humidity']});"
-
-    cur.execute(query)
-    cnx.commit()
-    return str(cur.lastrowid)
+    return Queries.create_new_sensor_feed(request.get_json(), cur, cnx)
 
 
 @app.route('/<int:drying_cycle>/inactive')
