@@ -7,7 +7,7 @@ from OpenWeather import OpenWeather
 from Stats import Statistics
 from Registration import Registration
 from flasgger import Swagger, LazyString, LazyJSONEncoder, swag_from
-import Queries
+import Queries  
 
 appname = "Smart Drying-rack"
 app = Flask(appname)
@@ -513,7 +513,11 @@ def display(user):
         return abort(404)
 
     result = Queries.select_last_sensor_feed(user, cur)
-
+    #TEST
+    ##########################
+    if len(result) == 0:
+        return json.dumps([{}])
+    ##########################
     r = [dict((cur.description[i][0], value) for i, value in enumerate(row)) for row in result]
     if 'application/json' in request.headers:
         return json.dumps(r, indent=4, separators=(',', ': '), default=str) if r else None

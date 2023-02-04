@@ -67,3 +67,25 @@ def get_stats(username = ''):
             f"-Expected drying time during the winter: {normalized_avg15} hours\n"\
             f"-Expected drying time indoor: {normalized_avg20} hours \n"\
             f"-Expected drying time during the summer: {normalized_avg25} hours\n"
+
+def get_status(username):
+    try:
+        response = requests.get(f'{API_LOCATION}/rack_user/{username}')
+    except ConnectionError:
+        return 'Connection Error: API probably offline, please retry later'
+    try:
+        dictionary = response.json()
+    except requests.exceptions.JSONDecodeError:
+        print(response.text)
+        return 'Something went wrong!'
+    dictionary = dictionary[0]
+    if not any(dictionary):
+        return "You don't have any sensor feed yet. Activate a new drying cycle to get some!"
+    for i in dictionary.keys():
+        dictionary[i] = dictionary[i] if not dictionary[i] is None else 0
+    ret_string = "*Here is the current status of your drying rack:*\n"
+    status = "-You have an ongoing drying cycle\n" if dictionary['is_active'] == 1 else "-Your drying cycle is finished.\n"
+    rain = "-It is raining" if dictionary['is_raining'] < 300 else "-It is *not* raining \n"
+    hum_and_t = f"-The temperature is: {dictionary['air_temperature']}, the air humidity is {dictionary['air_humidity']}% \n"
+    cloth_hum = f"-The drying is {100 - dictionary['cloth_humidity']}% done" if dictionary['is_active'] == 1 else ""
+    return f"{ret_string}{status}{rain}{hum_and_t}{cloth_hum}"

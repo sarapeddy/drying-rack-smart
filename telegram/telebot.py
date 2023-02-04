@@ -30,7 +30,9 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                                                             "/register - Create your new StendAPP account \n"\
                                                                             "/login - Log into your StendAPP account \n"\
                                                                             "/logout - Log out of your StendAPP account\n"\
-                                                                            "/stats - See expected drying time")
+                                                                            "/stats - See expected drying time\n"\
+                                                                            "/mystats - See expected drying time based on your data\n"\
+                                                                            "/current - See the current status of your drying rack")
 async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #Handler del comando di /register
     #Inizia il processo di registrazione
@@ -104,8 +106,9 @@ async def logout(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_data[c_id].status = UNLOGGED
         await context.bot.send_message(chat_id=update.effective_chat.id, text="You are now logged out, use /login or /register")
 
-#Handler della ricezione di posizioni
+
 async def position_manager(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    #Handler della ricezione di posizioni
     c_id = update.effective_chat.id
     if user_data[c_id].status == NEED_POSITION_REG:
         print(update.message.location)
@@ -139,6 +142,17 @@ async def stats_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
     response = utilities.get_stats(user_data[c_id].username)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
 
+async def current_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    #Handler per il comando /mystats
+    c_id = update.effective_chat.id
+    if not c_id in user_data.keys():
+        user_data[c_id] = user()
+    if user_data[c_id].status != LOGGED:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="You need to login to use this command")
+        return
+    response = utilities.get_status(user_data[c_id].username)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+
 async def callback_minute(context: ContextTypes.DEFAULT_TYPE):
     #Handler di messaggi ricorrenti a tutti gli utenti registrati
     for i in user_data.keys():
@@ -156,7 +170,8 @@ if __name__ == '__main__':
     stats_handler = CommandHandler('stats', stats)
     stats_user_handler = CommandHandler('mystats', stats_user)
     help_handler = CommandHandler('help', help)
-    application.add_handlers((start_handler, register_handler,pos_handler, msg_handler, login_handler, logout_handler, stats_handler, help_handler, stats_user_handler))
+    current_handler = CommandHandler('current', current_status)
+    application.add_handlers((start_handler, register_handler,pos_handler, msg_handler, login_handler, logout_handler, stats_handler, help_handler, stats_user_handler, current_handler))
     job_queue = application.job_queue
     job_minute = job_queue.run_repeating(callback_minute, interval=120, first=30)
     application.run_polling()

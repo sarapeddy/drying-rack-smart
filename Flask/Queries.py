@@ -147,11 +147,10 @@ def select_last_weather_feed(user, cur):
 
 def select_last_sensor_feed(user, cur):
     # seleziona l'ultimo sensor feed dell'ultimo ciclo asciugatura dato un utente
-    query = f"select * from sensor_feed join drying_cycle on(sensor_feed.cycle_id = drying_cycle.id) " \
-            f"where drying_cycle.id >= all(select drying_cycle.id from drying_cycle join rack_user " \
-            f"on(drying_cycle.user_name = rack_user.user_name) " \
-            f"where rack_user.user_name like '{user}') and sensor_feed.id >= all(select sensor_feed.id " \
-            f"from sensor_feed join drying_cycle on(sensor_feed.cycle_id = drying_cycle.id)) ;"
+    query = f"select * from sensor_feed s join drying_cycle d on(s.cycle_id = d.id) " \
+            f"where d.user_name like '{user}' " \
+            f"and s.id >= all(select s1.id from sensor_feed s1 join drying_cycle d1 on (s1.cycle_id = d1.id) " \
+			f"where d1.user_name like '{user}');"
 
     cur.execute(query)
     result = cur.fetchall()

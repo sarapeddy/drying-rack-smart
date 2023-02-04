@@ -14,6 +14,13 @@ where drying_cycle.id >= all( select drying_cycle.id from drying_cycle join rack
 							where rack_user.user_name like 'ilVincio')
 and sensor_feed.id >= all (select sensor_feed.id from sensor_feed join drying_cycle
 							on (sensor_feed.cycle_id = drying_cycle.id));
+                            
+                            
+#Seleziona l'ultimo sensor_feed ricevuto da un dato utente
+select * from sensor_feed s join drying_cycle d on(s.cycle_id = d.id)
+where d.user_name like 'ilVincio'
+and s.id >= all(select s1.id from sensor_feed s1 join drying_cycle d1 on (s1.cycle_id = d1.id)
+				where d1.user_name like 'ilVincio');
 
 #seleziona l'ultimo weather_feed dato un utente
 select * from weather_feed join rack_user
@@ -141,10 +148,6 @@ values(21, 0, 30, 6, 40, 71);
 insert into sensor_feed(air_temperature, is_raining, cloth_weight, cycle_id, cloth_humidity, air_humidity)
 values(21, 0, 22, 5, 36, 50);
 
-select * from drying_cycle;
-select * from sensor_feed;
 
-select * from rack_user
-											
-        
+
 
