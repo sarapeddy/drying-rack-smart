@@ -177,3 +177,40 @@ def select_lat_lon(user, cur):
     cur.execute(query)
     result = cur.fetchall()
     return result
+
+def check_rack_user(user, cur):
+    query = f"select user_name, pin from rack_user " \
+            f"where pin='{user['password']}' and user_name='{user['username']}';"
+    cur.execute(query)
+    result = cur.fetchall()
+    return result
+
+
+def create_new_user_json(request_data, cur, cnx):
+    query = f"insert into rack_user (`user_name`, pin, lat, lon) " \
+            f"values ('{request_data['username']}', '{request_data['password']}', {request_data['latitude']}, " \
+            f" {request_data['longitude']}) ;"
+    cur.execute(query)
+    cnx.commit()
+    return str(cur.lastrowid)
+
+
+def create_new_drying_cycle(request_data, cur, cnx):
+    query = f"insert into drying_cycle (`user_name`) " \
+            f"values ('{request_data['user']}');"
+    cur.execute(query)
+    cnx.commit()
+    return str(cur.lastrowid)
+
+
+def create_new_sensor_feed(request_data, cur, cnx):
+    query = f"insert into sensor_feed(`air_temperature`, `is_raining`, `cloth_weight`, `cycle_id`, " \
+            f"`cloth_humidity`, `air_humidity`) " \
+            f"values({request_data['air_temperature']}, " \
+            f"{request_data['is_raining']}, {request_data['cloth_weight']}, " \
+            f"{request_data['cycle_id']}, {request_data['cloth_humidity']}, " \
+            f"{request_data['air_humidity']});"
+
+    cur.execute(query)
+    cnx.commit()
+    return str(cur.lastrowid)

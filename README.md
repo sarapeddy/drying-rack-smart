@@ -37,13 +37,13 @@ Qui il [link](https://www.tinkercad.com/things/hZl0u94ahFn-drying-rack-smart/edi
 ## Database MySQL
 Il datbase su cui saranno conservati i dati degli utenti sarà gestito con DBMS mySql in una istanza locale, a cui è possibile collegarsi tramite l'utilizzo di una rete virtuale hamachi (scaricabile al [link](https://vpn.net/)).
 
-## StendApp
-Per creare l'app è stato scelto di utilizzare [Thunkable](https://x.thunkable.com/projects/) che permette lo sviluppo di prototipi in modo rapido. In più è stata creata una mail ad-hoc in modo che si possa utilizzare lo stesso file per sviluppare.
+## ThesmartStendino Bot
+L'interazione con l'utente è stata implementata tramite la realizzazione di un bot telegram chiamato @ThesmartStendino in cui è possibile loggarsi, vedere statistiche e settare la posizione dello stendino. Nel lungo periodo questo bot dovrebbe trasformarsi in una vera e propria app detta StendApp.
 
 ## Flask
 Per il lato server e per la realizzazione di API Rest in grado di ricevere richieste HTTP ed effettuare le query al db.
-Lo script Flask si connette inoltre alla API di OpenWeather per ottenere dati meteo a date coordinate. Inoltre si occupa di calcolare statistiche sui dati conservati sul DB
+Lo script Flask si connette inoltre alla API di OpenWeather per ottenere dati meteo a date coordinate. Inoltre si occupa di calcolare statistiche sui dati conservati sul DB.
+La documentazione delle API è stata implementata tramite Swagger.
 
 TODO
 - deploying Flask su AWS
-- documentazione Swagger
