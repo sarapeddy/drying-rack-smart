@@ -3,7 +3,7 @@ def select_start_finish_time_user(user, cur):
     query = f"select d.start_time, s.sensor_time as finish_time " \
             f"from drying_cycle d join sensor_feed s on (d.id = s.cycle_id) " \
             f"where d.user_name like '{user}' " \
-            f"and is_active is false " \
+            f"and d.is_active is false " \
             f"and s.id >= all(select s1.id from sensor_feed s1 " \
             f"where s1.cycle_id = s.cycle_id);"
     cur.execute(query)

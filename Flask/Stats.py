@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Iterable
 import mysql.connector
 from configparser import ConfigParser
 import Queries
@@ -41,6 +42,8 @@ class Statistics:
         print(result)
         for i in result:
             datediff = datediff +((result[k][1] - result[k][0]).total_seconds())
+        if len(result) == 0:
+            return datediff
         return datediff/len(result)
 
     def get_normalized_mean_cycle_time(self, user = None):
@@ -54,7 +57,10 @@ class Statistics:
         k = 0
         print(result)
         for i in result:
-            datediff = datediff +((result[k][1] - result[k][0]).total_seconds())*100/(result[k][2] - result[k][3])
+            if i[2] != i[3]:
+                datediff = datediff +((result[k][1] - result[k][0]).total_seconds())*100/(i[2] - i[3])
+        if len(result) == 0:
+            return datediff
         return datediff/len(result)
 
     def get_normalized_cycle_time_per_temp(self, user = None):
@@ -78,14 +84,17 @@ class Statistics:
                         else:
                             datediff[1] = datediff[1] +((j[1] - j[0]).total_seconds())*100/abs(j[2] - j[3])
         return datediff
-    def get_total_cycles_user(self):
-        result = Queries.select_tot
+    def get_total_cycles_user(self, user = None):
+        if user == None:
+            result = Queries.select_total_cycles_last_month(self.cur)
+        else:
+            result = Queries.select_total_cycles_last_month(self.cur)
 
-    '''
+'''
 if __name__ == '__main__':
     testdb()
     s = Statistics(cur)
-    print(s.get_mean_cycle_time_user())
+    print(s.get_mean_cycle_time_user('bucci23'))
     print(s.get_normalized_mean_cycle_time())
     print(s.get_normalized_cycle_time_per_temp())
 '''
