@@ -158,7 +158,6 @@ def add_user():
 
 
 def check_json(data):
-    print(data)
     myreg = Registration(cur)
     response1 = myreg.lat_lon_control(data['latitude'], data['longitude'])
     if response1 != 'True':
@@ -221,7 +220,6 @@ def check(data):
     myreg = Registration(cur)
     response1 = myreg.lat_lon_control(data["latitude"], data["longitude"])
     response2 = myreg.check_db(data["username"], data["password"])
-    print(response1, response2)
     if response1 == response2:
         return True
     return False
