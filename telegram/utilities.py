@@ -105,3 +105,18 @@ def get_best_time(username):
     best = now + dictionary['best_time'] * 3600
     best = datetime.fromtimestamp(best)
     return f"The best time to dry your clothes will be {dictionary['best_time']} hours from now, at {best}"
+
+def get_imminent_rain(username):
+    try:
+        response = requests.get(f'{API_LOCATION}/weather_feed/{username}')
+    except ConnectionError:
+        return False
+    try:
+        dictionary = response.json()
+    except requests.exceptions.JSONDecodeError:
+        print(response.text)
+        return 'Something went wrong!'
+    return dictionary['rain']
+
+def is_outside(username):
+    return True

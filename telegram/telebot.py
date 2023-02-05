@@ -3,7 +3,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, ContextTypes, filters
 from telegram.ext import ContextTypes, Application
 import utilities
-from utilities import UNLOGGED, NEED_PASSWORD_LOG, NEED_PASSWORD_REG, NEED_POSITION_REG, NEED_USERNAME_LOG, NEED_USERNAME_REG, LOGGED
+from utilities import UNLOGGED, NEED_PASSWORD_LOG, NEED_PASSWORD_REG, NEED_POSITION_REG, NEED_USERNAME_LOG, NEED_USERNAME_REG, LOGGED, get_imminent_rain
 BOTKEY = '6152911022:AAHcG-1rkKjBmuv_dZw7iXGrg8jGLbPempM'
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -17,7 +17,8 @@ class user:
         self.latitude = -1
         self.longitude = -1
         self.status = UNLOGGED
-
+        self.notify = True
+        self.notify_timer = 0
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #Handler del comando /start
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Hi! I am your smart drying rack! please /login or /register to the stendApp Community!")
@@ -164,11 +165,17 @@ async def best_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     response = utilities.get_best_time(user_data[c_id].username)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+
 async def callback_minute(context: ContextTypes.DEFAULT_TYPE):
     #Handler di messaggi ricorrenti a tutti gli utenti registrati
     for i in user_data.keys():
-        if user_data[i].status == LOGGED:
-            await context.bot.send_message(chat_id=i, text='Hello!')
+        if user_data[i].status == LOGGED and user_data[i].notify is True:
+            if user_data[i].notify_timer > 0:
+                user_data[i].notify_timer -= 1
+            if utilities.is_outside(user_data[i].username):
+                if get_imminent_rain(user_data[i].username):
+                    context.bot.send_message(chat_id=i, text="There is rain incoming in the next three hours!")
+                    user_data[i].notify_timer=30
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token(BOTKEY).build()
