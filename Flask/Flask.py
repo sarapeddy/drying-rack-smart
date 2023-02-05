@@ -7,11 +7,13 @@ from OpenWeather import OpenWeather
 from Stats import Statistics
 from Registration import Registration
 from flasgger import Swagger, LazyString, LazyJSONEncoder, swag_from
-import Queries  
+from werkzeug.middleware.proxy_fix import ProxyFix
+import Queries
+import Creation
 
 appname = "Smart Drying-rack"
-app = Flask(appname)
-app.json_encoder = LazyJSONEncoder
+application = Flask(appname)
+application.json_encoder = LazyJSONEncoder
 
 config = ConfigParser()
 config.read('config.ini')
@@ -45,7 +47,7 @@ swagger_config = {
     "specs_route": "/apidocs/"
 }
 
-swagger = Swagger(app, template=swagger_template, config=swagger_config)
+swagger = Swagger(application, template=swagger_template, config=swagger_config)
 
 try:
     cnx = mysql.connector.connect(user=user, password=password, host=host, db=database)
@@ -55,17 +57,19 @@ except Exception as e:
 
 key_weather = config.get('Weather', 'key')
 
-api = Api(app)
+CREATE = 0 # variabile per la creazione del db su AWS
+
+api = Api(application)
 
 
-@app.route('/')
+@application.route('/')
 def hello():
     """
-    ---
-    responses:
-        200:
-            description: Check if the connection to the mysql db is correct
-    """
+       ---
+       responses:
+           200:
+               description: Check if the connection to the mysql db is correct
+       """
     testdb()
     return '<h1>Smart Drying-Rack<h1>'
 
@@ -83,24 +87,24 @@ def testdb():
         return '<h1>Something is broken.</h1>'
 
 
-@app.route('/', methods=['PUT'])
+@application.route('/', methods=['PUT'])
 def query_records():
     record = json.loads(request.data)
     return record
 
 
-@app.route('/test')
+@application.route('/test')
 def hello_name():
     """
-    ---
-    responses:
-        200:
-            description: OK
-        400:
-            description: Client Error
-        500:
-            description: Internal Server Error
-    """
+     ---
+     responses:
+         200:
+             description: OK
+         400:
+             description: Client Error
+         500:
+             description: Internal Server Error
+     """
     name = request.args.get('name')
     if name is None:
         name = request.cookies.get('name', 'Human')
@@ -113,7 +117,7 @@ def hello_name():
     return response
 
 
-@app.route('/registration-bot', methods=['POST'])
+@application.route('/registration-bot', methods=['POST'])
 def add_user():
     """
     ---
@@ -171,7 +175,7 @@ def check_json(data):
     return response1 + ' ' + response2
 
 
-@app.route('/registration/', methods=['GET', 'POST'])
+@application.route('/registration/', methods=['GET', 'POST'])
 def add_user_view():
     """
     ---
@@ -225,7 +229,7 @@ def check(data):
     return False
 
 
-@app.route('/credentials', methods=['POST'])
+@application.route('/credentials', methods=['POST'])
 def check_credentials():
     """
     ---
@@ -261,7 +265,7 @@ def check_credentials():
     return "Uncorrect username or/and password"
 
 
-@app.route('/drying-cycle', methods=['POST'])
+@application.route('/drying-cycle', methods=['POST'])
 def create_new_drying_clycle():
     """
     ---
@@ -288,7 +292,7 @@ def create_new_drying_clycle():
     return Queries.create_new_drying_cycle(request.get_json(), cur, cnx)
 
 
-@app.route('/sensors/data', methods=['POST'])
+@application.route('/sensors/data', methods=['POST'])
 def receive_sensor_feed():
     """
     ---
@@ -330,7 +334,7 @@ def receive_sensor_feed():
     return Queries.create_new_sensor_feed(request.get_json(), cur, cnx)
 
 
-@app.route('/<int:drying_cycle>/inactive')
+@application.route('/<int:drying_cycle>/inactive')
 def set_drying_cycle_inactive(drying_cycle):
     """
     ---
@@ -355,8 +359,8 @@ def set_drying_cycle_inactive(drying_cycle):
     return str(Queries.update_status_drying_cycle(drying_cycle, cnx, cur))
 
 
-@app.route('/stats/', defaults={'user': None})
-@app.route('/stats/<string:user>')
+@application.route('/stats/', defaults={'user': None})
+@application.route('/stats/<string:user>')
 def show_stats(user=None):
     """
     ---
@@ -395,11 +399,11 @@ def show_stats(user=None):
                 normalized_cycle_time_temp=normalized_cycle_time_temp)
 
 
-@app.route('/weather_feed/<string:user>', methods=['GET', 'POST'])
+@application.route('/weather_feed/<string:user>', methods=['GET', 'POST'])
 def show_weather_info(user):
     """
     ---
-    summary: Give a wheater feed based on the position given in the registration phase.
+    summary: Give a wheated feed based on the position given in the registration phase.
     description: Give a wheated feed based on the position given in the registration phase.
     parameters:
       - name: User
@@ -427,11 +431,11 @@ def show_weather_info(user):
         rain = myweather.is_going_to_rain_in_3h(lat, lon)
         hum = myweather.get_humidity(lat, lon)
         best_time = myweather.get_best_moment(lat, lon)
-        mydict = dict(temp=temp, rain=rain, hum=hum, best_time = best_time)
+        mydict = dict(temp=temp, rain=rain, hum=hum, best_time=best_time)
         return json.dumps(mydict, indent=4)
 
 
-@app.route('/rack_user/<string:user>')
+@application.route('/rack_user/<string:user>')
 def display(user):
     """
     ---
@@ -456,8 +460,10 @@ def display(user):
         return abort(404)
 
     result = Queries.select_last_sensor_feed(user, cur)
+
     if len(result) == 0:
         return json.dumps([{}])
+
     r = [dict((cur.description[i][0], value) for i, value in enumerate(row)) for row in result]
     if 'application/json' in request.headers:
         return json.dumps(r, indent=4, separators=(',', ': '), default=str) if r else None
@@ -465,7 +471,17 @@ def display(user):
         return r if r else None
 
 
+@application.route('/database')
+def create_database():
+    if CREATE:
+        Creation.create_db(cnx, cur)
+
+    return "Database created"
+
+
+
 if __name__ == '__main__':
     host = '0.0.0.0'
     port = 80
-    app.run(port=port, host=host, debug=True)
+    #application.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    application.run(port=port, host=host, debug=True)
