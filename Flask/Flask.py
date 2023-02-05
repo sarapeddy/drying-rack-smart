@@ -399,7 +399,7 @@ def show_stats(user=None):
 def show_weather_info(user):
     """
     ---
-    summary: Give a wheated feed based on the position given in the registration phase.
+    summary: Give a wheater feed based on the position given in the registration phase.
     description: Give a wheated feed based on the position given in the registration phase.
     parameters:
       - name: User
@@ -426,7 +426,8 @@ def show_weather_info(user):
         temp = myweather.get_temperature(lat, lon)
         rain = myweather.is_going_to_rain_in_3h(lat, lon)
         hum = myweather.get_humidity(lat, lon)
-        mydict = dict(temp=temp, rain=rain, hum=hum)
+        best_time = myweather.get_best_moment(lat, lon)
+        mydict = dict(temp=temp, rain=rain, hum=hum, best_time = best_time)
         return json.dumps(mydict, indent=4)
 
 
@@ -455,11 +456,8 @@ def display(user):
         return abort(404)
 
     result = Queries.select_last_sensor_feed(user, cur)
-    #TEST
-    ##########################
     if len(result) == 0:
         return json.dumps([{}])
-    ##########################
     r = [dict((cur.description[i][0], value) for i, value in enumerate(row)) for row in result]
     if 'application/json' in request.headers:
         return json.dumps(r, indent=4, separators=(',', ': '), default=str) if r else None

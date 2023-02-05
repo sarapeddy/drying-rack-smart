@@ -21,8 +21,9 @@ class user:
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #Handler del comando /start
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Hi! I am your smart drying rack! please /login or /register to the stendApp Community!")
-    user_data[update.effective_chat.id] = user()
-
+    c_id = update.effective_chat.id
+    if not c_id in user_data.keys():
+        user_data[update.effective_chat.id] = user()
 
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Hi! I am your smart drying rack! please /login or /register to the stendApp Community!" \
@@ -153,6 +154,16 @@ async def current_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     response = utilities.get_status(user_data[c_id].username)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
 
+async def best_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    #Handler per il comando /best_time
+    c_id = update.effective_chat.id
+    if not c_id in user_data.keys():
+        user_data[c_id] = user()
+    if user_data[c_id].status != LOGGED:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="You need to login to use this command")
+        return
+    response = utilities.get_best_time(user_data[c_id].username)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
 async def callback_minute(context: ContextTypes.DEFAULT_TYPE):
     #Handler di messaggi ricorrenti a tutti gli utenti registrati
     for i in user_data.keys():
@@ -171,7 +182,8 @@ if __name__ == '__main__':
     stats_user_handler = CommandHandler('mystats', stats_user)
     help_handler = CommandHandler('help', help)
     current_handler = CommandHandler('current', current_status)
-    application.add_handlers((start_handler, register_handler,pos_handler, msg_handler, login_handler, logout_handler, stats_handler, help_handler, stats_user_handler, current_handler))
+    forecast_handler = CommandHandler('forecast', best_time)
+    application.add_handlers((start_handler, register_handler,pos_handler, msg_handler, login_handler, logout_handler, stats_handler, help_handler, stats_user_handler, current_handler, forecast_handler))
     job_queue = application.job_queue
     job_minute = job_queue.run_repeating(callback_minute, interval=120, first=30)
     application.run_polling()

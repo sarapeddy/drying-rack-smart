@@ -1,5 +1,6 @@
 import requests
-
+import datetime
+from datetime import datetime
 API_LOCATION = 'http://localhost:80'
 
 #POSSIBILI STATI DI UN UTENTE:
@@ -89,3 +90,18 @@ def get_status(username):
     hum_and_t = f"-The temperature is: {dictionary['air_temperature']}, the air humidity is {dictionary['air_humidity']}% \n"
     cloth_hum = f"-The drying is {100 - dictionary['cloth_humidity']}% done" if dictionary['is_active'] == 1 else ""
     return f"{ret_string}{status}{rain}{hum_and_t}{cloth_hum}"
+
+def get_best_time(username):
+    try:
+        response = requests.get(f'{API_LOCATION}/weather_feed/{username}')
+    except ConnectionError:
+        return 'Connection Error: API probably offline, please retry later'
+    try:
+        dictionary = response.json()
+    except requests.exceptions.JSONDecodeError:
+        print(response.text)
+        return 'Something went wrong!'
+    now = datetime.timestamp(datetime.now())
+    best = now + dictionary['best_time'] * 3600
+    best = datetime.fromtimestamp(best)
+    return f"The best time to dry your clothes will be {dictionary['best_time']} hours from now, at {best}"
