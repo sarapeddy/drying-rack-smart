@@ -1,3 +1,4 @@
+
 import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, ContextTypes, filters
@@ -55,7 +56,7 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="You were logging, finish that procedure before trying something else!")
 
-#Gestore dei messaggi: (tutto ciò che non è comando)
+#Gestore dei messaggi: (tutto ciï¿½ che non ï¿½ comando)
 async def message_manager(update: Update, context: ContextTypes.DEFAULT_TYPE):
     c_id = update.effective_chat.id
     message = update.message.text
