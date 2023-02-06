@@ -25,7 +25,7 @@ void set_color(bool red, bool green, bool blue){
 
 void setup(){
   Serial.begin(9600);
-  t.set(8000);
+  t.set(300000);
   
   /* SET RGB LED */
   pinMode(RED, OUTPUT);
@@ -41,13 +41,13 @@ void setup(){
 void loop(){
   /* CHECK WHEN THE BUTTON IS PRESSED */
   int buttonState = digitalRead(BUTTON);
-  delay(200);
+  delay(300);
   if(buttonState == HIGH){
     state = !state;
     Serial.println(state);
   }
 
-  if(t.check()){
+  if(t.check() && state == true){
     /*DHT11: AIR HUMIDITY AND TEMPERATURE*/
     int chk = DHT.read11(DHT11_PIN);
   
@@ -82,6 +82,11 @@ void loop(){
 
     if(str == "finish"){
       set_color(0, 1, 0);
+    }
+
+    if(str == "force-finish"){
+      set_color(0, 1, 0);
+      state = !state;
     }
   }
 }

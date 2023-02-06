@@ -15,6 +15,7 @@ class Bridge:
         self.ser = None
         self.user = None
         self.cycle_id = None
+        self.last_force_feed = None
         self.config = ConfigParser()
         self.config.read('config.ini')
         self.check_credentials()
@@ -74,6 +75,15 @@ class Bridge:
         return json_data
 
     def check_weight(self, weight):
+        if self.last_force_feed is not None:
+            if weight < 50 and self.last_force_feed < 50:
+                r = requests.get(url=f"http://{self.config.get('Api', 'host')}:5000/{self.cycle_id}/inactive")
+                self.last_force_feed = None
+                self.cycle_id = None
+                self.current_state = 0
+                self.new_state = 0
+                return True
+        self.last_force_feed = weight
         return False
 
     def start_or_finish_drying_cycle(self, current_state, new_state):
@@ -111,9 +121,9 @@ class Bridge:
                     except KeyError:
                         if json_data != {} and self.current_state == 1:
                             r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/sensors/data", json=json_data)
-                            if self.check_weight(json_data["cloth_weight"]):
-                                #INSERT HERE A WRITE ON SERIAL PORT TO STOP THE CYCLE
-                                print("Terminate Drying Cycle")
+                            if self.check_weight(int(json_data["cloth_weight"])):
+                                buffer = 'force-finish'
+                                self.ser.write(buffer.encode(encoding='ascii', errors='strict'))
 
                 #write on serial port
                 self.current_state = self.start_or_finish_drying_cycle(self.current_state, self.new_state)
