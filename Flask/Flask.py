@@ -28,7 +28,7 @@ swagger_template = dict(
     info={
         'title': LazyString(lambda: 'Drying Rack Smart'),
         'version': LazyString(lambda: '1.0'),
-        'description': LazyString(lambda: 'This is the documentations about Flask Drying Rack Smart project Apis'),
+        'description': LazyString(lambda: 'This is the documentation about Flask Drying Rack Smart project Apis'),
     },
     host=LazyString(lambda: request.host)
 )
@@ -57,7 +57,8 @@ except Exception as e:
 
 key_weather = config.get('Weather', 'key')
 
-CREATE = 0 # variabile per la creazione del db su AWS
+CREATE = 0  # variabile per la creazione del db su AWS
+INSERT = 0  # variabile per inserire dati di prova nel db su AWS
 
 api = Api(application)
 
@@ -210,6 +211,7 @@ def add_user_view():
     """
     if request.method == 'POST':
         data = dict(request.form)
+        print(request.form)
         s = check(data)
 
         if s:
@@ -505,9 +507,57 @@ def display(user):
 def create_database():
     if CREATE:
         Creation.create_db(cnx, cur)
+    if INSERT:
+        Creation.insert_base_data(cnx, cur)
 
     return "Database created"
 
+
+@application.route('/deletion/drying_cycle/<string:user>', methods=['DELETE'])
+def cancel_last_cycle(user):
+    """
+ ---
+    summary: Delete the last drying cycle of a user
+    description: The drying cycle and the data are being deleted. If this API is called it is possible to delete the drying cycle and sensor data associated with it.
+    parameters:
+      - name: User
+        in: string
+        required: true
+        schema:
+            type: string
+            properties:
+                username:
+                    type: string
+                    example: mariorossi
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
+    result = Queries.select_last_drying_cycle(user, cur)
+    if not result:
+        return 'Username invalid'
+
+    #print(result, result[0][0], result[0][1])
+    username = result[0][0]
+    id = result[0][1]
+    try:
+        Queries.delete_sensor_feed(id, cur)
+        Queries.delete_last_drying_cycle(id, cur)
+        cnx.commit()
+    except Exception as e:
+        print(e)
+        return ' Deletion gone wrong'
+
+    return str(username) + ' last drying cycle deleted'
+
+
+@application.route('/deletion/<string:user>', methods=['DELETE'])
+def cancel_all(user):
+    pass
 
 
 if __name__ == '__main__':
