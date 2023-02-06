@@ -24,7 +24,7 @@ def select_start_finish_time(cur):
 
 
 def select_start_finish_time_hum(cur):
-    #seleziona start_time, finish_time, umidit� iniziale ed umidit� finale di tutti i cicli di asciugatura
+    # seleziona start_time, finish_time, umidit� iniziale ed umidit� finale di tutti i cicli di asciugatura
     query = "select d.start_time, s.sensor_time as finish_time, s2.cloth_humidity as start_hum, s.cloth_humidity as finish_hum, d.id \
             from drying_cycle d join sensor_feed s on (d.id = s.cycle_id) \
             join sensor_feed s2 on (d.id = s2.cycle_id) \
@@ -39,7 +39,7 @@ def select_start_finish_time_hum(cur):
 
 
 def select_start_finish_time_hum_user(user, cur):
-    #seleziona start_time, finish_time, umidit� iniziale ed umidit� finale di tutti i cicli di asciugatura di un dato utente
+    # seleziona start_time, finish_time, umidit� iniziale ed umidit� finale di tutti i cicli di asciugatura di un dato utente
     query = f"select d.start_time, s.sensor_time as finish_time, s2.cloth_humidity as start_hum, s.cloth_humidity as finish_hum, d.id \
             from drying_cycle d join sensor_feed s on (d.id = s.cycle_id) \
             join sensor_feed s2 on (d.id = s2.cycle_id) \
@@ -55,7 +55,7 @@ def select_start_finish_time_hum_user(user, cur):
 
 
 def select_avg_tmp_user(user, cur):
-    #seleziona le temperature medie di tutti i cicli di asciugatura di un dato utente
+    # seleziona le temperature medie di tutti i cicli di asciugatura di un dato utente
     query = f"select avg(s.air_temperature) as avg_temperature, d.id from  sensor_feed s join drying_cycle d \
             on (d.id = s.cycle_id) \
             where d.user_name like '{user}' \
@@ -66,7 +66,7 @@ def select_avg_tmp_user(user, cur):
 
 
 def select_avg_tmp(cur):
-    #seleziona le temperature medie di tutti i cicli di asciugatura di un dato utente
+    # seleziona le temperature medie di tutti i cicli di asciugatura di un dato utente
     query = 'select avg(s.air_temperature) as avg_temperature, s.cycle_id from  sensor_feed s \
             group by(s.cycle_id); '
     cur.execute(query)
@@ -75,7 +75,7 @@ def select_avg_tmp(cur):
 
 
 def select_total_cycles_last_month(cur):
-    #seleziona il numero di cicli effettuati da ciascun utente nell'ultimo mese
+    # seleziona il numero di cicli effettuati da ciascun utente nell'ultimo mese
     query = f'select count(distinct d.id) as total_cycles, d.user_name from drying_cycle d \
             where timestampdiff(day, d.start_time, now()) < 30 \
             group by d.user_name \
@@ -150,7 +150,7 @@ def select_last_sensor_feed(user, cur):
     query = f"select * from sensor_feed s join drying_cycle d on(s.cycle_id = d.id) " \
             f"where d.user_name like '{user}' " \
             f"and s.id >= all(select s1.id from sensor_feed s1 join drying_cycle d1 on (s1.cycle_id = d1.id) " \
-			f"where d1.user_name like '{user}');"
+            f"where d1.user_name like '{user}');"
 
     cur.execute(query)
     result = cur.fetchall()
@@ -177,6 +177,7 @@ def select_lat_lon(user, cur):
     cur.execute(query)
     result = cur.fetchall()
     return result
+
 
 def check_rack_user(user, cur):
     query = f"select user_name, pin from rack_user " \
@@ -214,3 +215,11 @@ def create_new_sensor_feed(request_data, cur, cnx):
     cur.execute(query)
     cnx.commit()
     return str(cur.lastrowid)
+
+
+def update_drying_rack_position(data, cur, cnx):
+    query = f"update rack_user set is_outside = {data['is_outside']} " \
+            f"where user_name = '{data['username']}';"
+    cur.execute(query)
+    cnx.commit()
+    return "Correct Operation"

@@ -359,6 +359,36 @@ def set_drying_cycle_inactive(drying_cycle):
     return str(Queries.update_status_drying_cycle(drying_cycle, cnx, cur))
 
 
+@application.route('/drying-rack/position', methods=['PUT'])
+def set_drying_rack_position():
+    """
+    ---
+    summary: Update the drying rack position
+    description: Update the drying rack position. The drying rack is setted outside by default. If this API is called it is possible to change the drying-rack position passing an object.
+    parameters:
+      - name: UpdateDryingCycle
+        in: body
+        required: true
+        schema:
+            type: object
+            properties:
+                username:
+                    type: string
+                    example: mariorossi
+                is_outside:
+                    type: bool
+                    example: 0
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
+    return Queries.update_drying_rack_position(request.get_json(), cur, cnx)
+
+
 @application.route('/stats/', defaults={'user': None})
 @application.route('/stats/<string:user>')
 def show_stats(user=None):
