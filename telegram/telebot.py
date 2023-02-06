@@ -3,7 +3,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, ContextTypes, filters
 from telegram.ext import ContextTypes, Application
 import utilities
-from utilities import UNLOGGED, NEED_PASSWORD_LOG, NEED_PASSWORD_REG, NEED_POSITION_REG, NEED_USERNAME_LOG, NEED_USERNAME_REG, LOGGED, get_imminent_rain
+from utilities import UNLOGGED, NEED_PASSWORD_LOG, NEED_PASSWORD_REG, NEED_POSITION_REG, NEED_USERNAME_LOG, NEED_USERNAME_REG, LOGGED
 BOTKEY = '6152911022:AAHcG-1rkKjBmuv_dZw7iXGrg8jGLbPempM'
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -18,7 +18,9 @@ class user:
         self.longitude = -1
         self.status = UNLOGGED
         self.notify = True
-        self.notify_timer = 0
+        self.notify_timer_weather = 0
+        self.notify_timer_rain = 0
+        self.notify_timer_com = 0
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #Handler del comando /start
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Hi! I am your smart drying rack! please /login or /register to the stendApp Community!")
@@ -34,7 +36,9 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                                                             "/logout - Log out of your StendAPP account\n"\
                                                                             "/stats - See expected drying time\n"\
                                                                             "/mystats - See expected drying time based on your data\n"\
-                                                                            "/current - See the current status of your drying rack")
+                                                                            "/current - See the current status of your drying rack\n"\
+                                                                            "/forecast - See the best time to dry your clothes"\
+                                                                            "/notify ON or OFF - turn on or off notifications")
 async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #Handler del comando di /register
     #Inizia il processo di registrazione
@@ -170,12 +174,46 @@ async def callback_minute(context: ContextTypes.DEFAULT_TYPE):
     #Handler di messaggi ricorrenti a tutti gli utenti registrati
     for i in user_data.keys():
         if user_data[i].status == LOGGED and user_data[i].notify is True:
-            if user_data[i].notify_timer > 0:
-                user_data[i].notify_timer -= 1
+            if user_data[i].notify_timer_weather > 0:
+                user_data[i].notify_timer_weather -= 1
+            if user_data[i].notify_timer_rain > 0:
+                user_data[i].notify_timer_rain -= 1
+            if user_data[i].notify_timer_com > 0:
+                user_data[i].notify_timer_com -= 1
             if utilities.is_outside(user_data[i].username):
-                if get_imminent_rain(user_data[i].username):
-                    context.bot.send_message(chat_id=i, text="There is rain incoming in the next three hours!")
-                    user_data[i].notify_timer=30
+                if utilities.get_imminent_rain(user_data[i].username):
+                    if user_data[i].notify_timer_weather == 0:
+                        user_data[i].notify_timer_weather = 5
+                        await context.bot.send_message(chat_id=i, text="There is rain incoming in the next three hours!")
+                if utilities.get_actual_rain(user_data[i].username):
+                    if user_data[i].notify_timer_rain == 0:
+                        user_data[i].notify_timer_rain = 5
+                    await context.bot.send_message(chat_id=i, text="It is raining! Consider taking your rack indoors!")
+                if utilities.get_community(user_data[i].username):
+                    if user_data[i].notify_timer_com == 0:
+                        user_data[i].notify_timer_com = 5
+                        await context.bot.send_message(chat_id=i, text="Some rack users near you has taken his rack inside, maybe you should too!")
+
+async def set_notify(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    c_id = update.effective_chat.id
+    if not c_id in user_data.keys():
+        user_data[c_id] = user()
+    if user_data[c_id].status != LOGGED:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="You need to login to use this command")
+        return
+    operation = context.args
+    if len(operation) != 1:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Invalid argument: Either ON or OFF")
+        return
+    operation = operation[0]
+    if 'on' in operation.lower():
+        user_data[c_id].notify = True
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Notifications are now ON")
+    elif 'off' in operation.lower():
+        user_data[c_id].notify = False
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Notifications are now OFF")
+    else:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Invalid argument: Either ON or OFF")
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token(BOTKEY).build()
@@ -190,7 +228,8 @@ if __name__ == '__main__':
     help_handler = CommandHandler('help', help)
     current_handler = CommandHandler('current', current_status)
     forecast_handler = CommandHandler('forecast', best_time)
-    application.add_handlers((start_handler, register_handler,pos_handler, msg_handler, login_handler, logout_handler, stats_handler, help_handler, stats_user_handler, current_handler, forecast_handler))
+    set_notify_handler = CommandHandler('notify', set_notify)
+    application.add_handlers((start_handler, register_handler,pos_handler, msg_handler, login_handler, logout_handler, stats_handler, help_handler, stats_user_handler, current_handler, forecast_handler, set_notify_handler))
     job_queue = application.job_queue
     job_minute = job_queue.run_repeating(callback_minute, interval=120, first=30)
     application.run_polling()

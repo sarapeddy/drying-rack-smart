@@ -120,3 +120,9 @@ def get_imminent_rain(username):
 
 def is_outside(username):
     return True
+
+def get_actual_rain(username):
+    return True
+
+def get_community(username):
+    return True

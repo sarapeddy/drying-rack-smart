@@ -10,4 +10,4 @@ raise_on_warnings = True
 
 [Weather]
 
-key = secret_key
+key = 2be3598cfb1963158f213a238e5c272e
