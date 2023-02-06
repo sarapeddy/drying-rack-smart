@@ -26,9 +26,9 @@ raise_on = bool(config.get('Database', 'raise_on_warnings'))
 
 swagger_template = dict(
     info={
-        'title': LazyString(lambda: 'Drying Rack Smart'),
+        'title': LazyString(lambda: 'Smart Drying Rack'),
         'version': LazyString(lambda: '1.0'),
-        'description': LazyString(lambda: 'This is the documentation about Flask Drying Rack Smart project Apis'),
+        'description': LazyString(lambda: 'This is the documentation about Flask Smart Drying Rack project Apis'),
     },
     host=LazyString(lambda: request.host)
 )
@@ -510,7 +510,11 @@ def create_database():
     if INSERT:
         Creation.insert_base_data(cnx, cur)
 
-    return "Database created"
+    cur.execute('select user_name from rack_user')
+    result = cur.fetchall()
+    if not result:
+        return "Database created"
+    return result
 
 
 @application.route('/deletion/drying_cycle/<string:user>', methods=['DELETE'])
@@ -557,11 +561,48 @@ def cancel_last_cycle(user):
 
 @application.route('/deletion/<string:user>', methods=['DELETE'])
 def cancel_all(user):
-    pass
+    """
+     ---
+    summary: Delete a user
+    description: Delete all information related to a user.
+    parameters:
+      - name: User
+        in: string
+        required: true
+        schema:
+            type: string
+            properties:
+                username:
+                    type: string
+                    example: mariorossi
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
+    result = Queries.select_last_drying_cycle(user, cur)
+    if not result:
+        return 'Username invalid'
+    username = result[0][0]
+    try:
+        # aggiungere on delete cascade sulla tabella sensor_feed
+        #Queries.delete_all_drying_cycle(user, cur)
+        #Queries.delete_weather_feed(user, cur)
+        #Queries.delete_user(user, cur)
+        #cnx.commit()
+        print(username)
+    except Exception as e:
+        print(e)
+        return ' Deletion gone wrong'
+
+    return str(username) + ' deleted'
 
 
 if __name__ == '__main__':
     host = '0.0.0.0'
     port = 80
-    #application.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    # application.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
     application.run(port=port, host=host, debug=True)
