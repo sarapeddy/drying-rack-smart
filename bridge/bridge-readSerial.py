@@ -73,11 +73,6 @@ class Bridge:
             return {"state": int(data[0])}
         return json_data
 
-    def check_rain(self, rain):
-        if rain < 500:
-            return True
-        return False
-
     def check_weight(self, weight):
         return False
 
@@ -116,8 +111,6 @@ class Bridge:
                     except KeyError:
                         if json_data != {} and self.current_state == 1:
                             r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/sensors/data", json=json_data)
-                            if self.check_rain(json_data["is_raining"]):
-                                print("Send message to near drying rack")
                             if self.check_weight(json_data["cloth_weight"]):
                                 #INSERT HERE A WRITE ON SERIAL PORT TO STOP THE CYCLE
                                 print("Terminate Drying Cycle")
