@@ -30,9 +30,9 @@ def select_start_finish_time_hum(cur):
             join sensor_feed s2 on (d.id = s2.cycle_id) \
             and is_active is false \
             and s.id >= all(select s1.id from sensor_feed s1 \
-				            where s1.cycle_id = s.cycle_id) \
+				                            where s1.cycle_id = s.cycle_id) \
             and s2.id <= all(select s1.id from sensor_feed s1 \
-				            where s1.cycle_id = s.cycle_id);"
+				                            where s1.cycle_id = s.cycle_id);"
     cur.execute(query)
     result = cur.fetchall()
     return result
@@ -223,3 +223,57 @@ def update_drying_rack_position(data, cur, cnx):
     cur.execute(query)
     cnx.commit()
     return "Correct Operation"
+
+
+def select_last_drying_cycle(user, cur):
+    query = f"select user_name, id " \
+            f"from drying_cycle " \
+            f"where user_name = '{user}' " \
+            f"and id = (select max(id) " \
+            f"	      from drying_cycle " \
+            f"		  where user_name = '{user}') " \
+            f"; "
+
+    cur.execute(query)
+    result = cur.fetchall()
+    return result
+
+
+def delete_last_drying_cycle(id, cur):
+    query = f"delete from drying_cycle where " \
+            f"id = {id} " \
+            f"; "
+    cur.execute(query)
+    return id
+
+
+def delete_all_drying_cycle(user, cur):
+    query = f"delete from drying_cycle where " \
+            f"user_name = '{user}' " \
+            f"; "
+    cur.execute(query)
+    return user
+
+
+def delete_weather_feed(user, cur):
+    query = f"delete from weather_feed where " \
+            f"user_name = '{user}' " \
+            f"; "
+    cur.execute(query)
+    return user
+
+
+def delete_sensor_feed(cycle_id, cur):
+    query = f"delete from sensor_feed where " \
+            f"cycle_id = {cycle_id} " \
+            f"; "
+    cur.execute(query)
+    return cycle_id
+
+
+def delete_user(user, cur):
+    query = f"delete from rack_user where " \
+            f"user_name = '{user}' " \
+            f"; "
+    cur.execute(query)
+    return user

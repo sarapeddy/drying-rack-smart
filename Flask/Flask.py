@@ -26,9 +26,9 @@ raise_on = bool(config.get('Database', 'raise_on_warnings'))
 
 swagger_template = dict(
     info={
-        'title': LazyString(lambda: 'Drying Rack Smart'),
+        'title': LazyString(lambda: 'Smart Drying Rack'),
         'version': LazyString(lambda: '1.0'),
-        'description': LazyString(lambda: 'This is the documentations about Flask Drying Rack Smart project Apis'),
+        'description': LazyString(lambda: 'This is the documentation about Flask Smart Drying Rack project Apis'),
     },
     host=LazyString(lambda: request.host)
 )
@@ -57,7 +57,8 @@ except Exception as e:
 
 key_weather = config.get('Weather', 'key')
 
-CREATE = 0 # variabile per la creazione del db su AWS
+CREATE = 0  # variabile per la creazione del db su AWS
+INSERT = 0  # variabile per inserire dati di prova nel db su AWS
 
 api = Api(application)
 
@@ -210,6 +211,7 @@ def add_user_view():
     """
     if request.method == 'POST':
         data = dict(request.form)
+        print(request.form)
         s = check(data)
 
         if s:
@@ -505,13 +507,102 @@ def display(user):
 def create_database():
     if CREATE:
         Creation.create_db(cnx, cur)
+    if INSERT:
+        Creation.insert_base_data(cnx, cur)
 
-    return "Database created"
+    cur.execute('select user_name from rack_user')
+    result = cur.fetchall()
+    if not result:
+        return "Database created"
+    return result
 
+
+@application.route('/deletion/drying_cycle/<string:user>', methods=['DELETE'])
+def cancel_last_cycle(user):
+    """
+ ---
+    summary: Delete the last drying cycle of a user
+    description: The drying cycle and the data are being deleted. If this API is called it is possible to delete the drying cycle and sensor data associated with it.
+    parameters:
+      - name: User
+        in: string
+        required: true
+        schema:
+            type: string
+            properties:
+                username:
+                    type: string
+                    example: mariorossi
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
+    result = Queries.select_last_drying_cycle(user, cur)
+    if not result:
+        return 'Username invalid'
+
+    #print(result, result[0][0], result[0][1])
+    username = result[0][0]
+    id = result[0][1]
+    try:
+        Queries.delete_sensor_feed(id, cur)
+        Queries.delete_last_drying_cycle(id, cur)
+        cnx.commit()
+    except Exception as e:
+        print(e)
+        return ' Deletion gone wrong'
+
+    return str(username) + ' last drying cycle deleted'
+
+
+@application.route('/deletion/<string:user>', methods=['DELETE'])
+def cancel_all(user):
+    """
+     ---
+    summary: Delete a user
+    description: Delete all information related to a user.
+    parameters:
+      - name: User
+        in: string
+        required: true
+        schema:
+            type: string
+            properties:
+                username:
+                    type: string
+                    example: mariorossi
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
+    result = Queries.select_last_drying_cycle(user, cur)
+    if not result:
+        return 'Username invalid'
+    username = result[0][0]
+    try:
+        # aggiungere on delete cascade sulla tabella sensor_feed
+        #Queries.delete_all_drying_cycle(user, cur)
+        #Queries.delete_weather_feed(user, cur)
+        #Queries.delete_user(user, cur)
+        #cnx.commit()
+        print(username)
+    except Exception as e:
+        print(e)
+        return ' Deletion gone wrong'
+
+    return str(username) + ' deleted'
 
 
 if __name__ == '__main__':
     host = '0.0.0.0'
     port = 80
-    #application.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    # application.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
     application.run(port=port, host=host, debug=True)
