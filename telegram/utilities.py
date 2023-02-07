@@ -121,8 +121,36 @@ def get_imminent_rain(username):
 def is_outside(username):
     return True
 
+def set_position(username, pos):
+    dictionary = {}
+    dictionary['is_outside'] = pos
+    dictionary['username'] = username
+    try:
+        response = requests.put(f'{API_LOCATION}/drying-rack/position', json = dictionary)
+    except ConnectionError:
+        return False
+    if response.status_code != 200:
+        print(response.text)
+        return 'Something went wrong!'
+    return 'Your rack is now set outside' if pos else 'Your rack is now set inside'
+
 def get_actual_rain(username):
-    return True
+    try:
+        response = requests.get(f'{API_LOCATION}/rack_user/{username}')
+    except ConnectionError:
+        return 'Connection Error: API probably offline, please retry later'
+    try:
+        dictionary = response.json()
+    except requests.exceptions.JSONDecodeError:
+        print(response.text)
+        return 'Something went wrong!'
+    dictionary = dictionary[0]
+    if not any(dictionary):
+        return "You don't have any sensor feed yet. Activate a new drying cycle to get some!"
+    for i in dictionary.keys():
+        dictionary[i] = dictionary[i] if not dictionary[i] is None else 0
+    print(dictionary['sensor_time'])
+    return dictionary['sensor_time'], True if dictionary['is_raining'] < 300 else False
 
 def get_community(username):
     return True

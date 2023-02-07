@@ -364,7 +364,7 @@ def set_drying_rack_position():
     """
     ---
     summary: Update the drying rack position
-    description: Update the drying rack position. The drying rack is setted outside by default. If this API is called it is possible to change the drying-rack position passing an object.
+    description: Update the drying rack position. The drying rack is set outside by default. If this API is called it is possible to change the drying-rack position passing an object.
     parameters:
       - name: UpdateDryingCycle
         in: body
