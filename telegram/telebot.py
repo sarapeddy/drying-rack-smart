@@ -1,10 +1,10 @@
-
+from calendar import c
 import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, ContextTypes, filters
 from telegram.ext import ContextTypes, Application
 import utilities
-from utilities import UNLOGGED, NEED_PASSWORD_LOG, NEED_PASSWORD_REG, NEED_POSITION_REG, NEED_USERNAME_LOG, NEED_USERNAME_REG, LOGGED
+from utilities import UNLOGGED, NEED_PASSWORD_LOG, NEED_PASSWORD_REG, NEED_POSITION_REG, NEED_USERNAME_LOG, NEED_USERNAME_REG, LOGGED, CONFIRM_DELETION
 BOTKEY = '6152911022:AAHcG-1rkKjBmuv_dZw7iXGrg8jGLbPempM'
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -62,7 +62,7 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="You were logging, finish that procedure before trying something else!")
 
-#Gestore dei messaggi: (tutto ciï¿½ che non ï¿½ comando)
+#Gestore dei messaggi: (tutto ciò che non è comando)
 async def message_manager(update: Update, context: ContextTypes.DEFAULT_TYPE):
     c_id = update.effective_chat.id
     message = update.message.text
@@ -86,6 +86,10 @@ async def message_manager(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif user_data[c_id].status == NEED_PASSWORD_LOG:
         user_data[c_id].status, response = utilities.check_credentials(user_data[c_id].username, message)
         await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+    elif user_data[c_id].status == CONFIRM_DELETION:
+        user_data[c_id].status, response = utilities.delete_rack(user_data[c_id].username, message)
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+
 
 #Handler del comando login       
 async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -121,9 +125,11 @@ async def position_manager(update: Update, context: ContextTypes.DEFAULT_TYPE):
     c_id = update.effective_chat.id
     if user_data[c_id].status == NEED_POSITION_REG:
         print(update.message.location)
-        user_data[c_id].lat = update.message.location.latitude
-        user_data[c_id].lon = update.message.location.longitude
+        user_data[c_id].latitude = update.message.location.latitude
+        user_data[c_id].longitude = update.message.location.longitude
         user_data[c_id].status = NEED_PASSWORD_REG
+        print(user_data[c_id].latitude)
+        print(user_data[c_id].longitude)
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Thank you! Now please insert your password!")
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="We didn't need that position!")
@@ -194,7 +200,7 @@ async def callback_minute(context: ContextTypes.DEFAULT_TYPE):
                     print(user_data[i].last_feed)
                     if rain and last_time != user_data[i].last_feed:
                         user_data[i].notify_timer_rain = 5
-                    await context.bot.send_message(chat_id=i, text="It is raining! Consider taking your rack indoors!")                
+                        await context.bot.send_message(chat_id=i, text="It is raining! Consider taking your rack indoors!")                
                 if user_data[i].notify_timer_com == 0:
                     if utilities.get_community(user_data[i].username):
                         user_data[i].notify_timer_com = 5
@@ -209,7 +215,7 @@ async def set_notify(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     operation = context.args
     if len(operation) != 1:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Invalid argument: Either ON or OFF")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Your notifications are ON") if user_data[c_id].notify is True else context.bot.send_message(chat_id=update.effective_chat.id, text="Your notifications are OFF")
         return
     operation = operation[0]
     if 'on' in operation.lower():
@@ -219,9 +225,9 @@ async def set_notify(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_data[c_id].notify = False
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Notifications are now OFF")
     else:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Invalid argument: Either ON or OFF")
-
-async def set_notify(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Your notifications are ON") if user_data[c_id].notify is True else context.bot.send_message(chat_id=update.effective_chat.id, text="Your notifications are OFF")
+    
+async def set_position(update: Update, context: ContextTypes.DEFAULT_TYPE):
     c_id = update.effective_chat.id
     if not c_id in user_data.keys():
         user_data[c_id] = user()
@@ -230,7 +236,7 @@ async def set_notify(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     operation = context.args
     if len(operation) != 1:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Invalid argument: Either ON or OFF")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Invalid argument: Either IN or OUT")
         return
     operation = operation[0]
     if 'in' in operation.lower():
@@ -238,10 +244,20 @@ async def set_notify(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif 'out' in operation.lower():
         message = utilities.set_position(user_data[c_id].username, True)
     else:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Invalid argument: Either ON or OFF")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Invalid argument: Either IN or OUT")
         return
     await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
+async def delete_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    c_id = update.effective_chat.id
+    if not c_id in user_data.keys():
+        user_data[c_id] = user()
+    if user_data[c_id].status != LOGGED and user_data[c_id] != CONFIRM_DELETION:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="You need to login to use this command")
+        return
+    else:
+        user_data[c_id].status = CONFIRM_DELETION
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Are you SURE? All your data will be deleted! [YES, no]")
 if __name__ == '__main__':
     application = ApplicationBuilder().token(BOTKEY).build()
     start_handler = CommandHandler('start', start)
@@ -256,8 +272,9 @@ if __name__ == '__main__':
     current_handler = CommandHandler('current', current_status)
     forecast_handler = CommandHandler('forecast', best_time)
     set_notify_handler = CommandHandler('notify', set_notify)
-    set_position_handler = CommandHandler('position', set_notify)
-    application.add_handlers((start_handler, register_handler,pos_handler, msg_handler, login_handler, logout_handler, stats_handler, help_handler, stats_user_handler, current_handler, forecast_handler, set_notify_handler, set_position_handler))
+    set_position_handler = CommandHandler('position', set_position)
+    delete_user_handler = CommandHandler('delete_user', delete_user)
+    application.add_handlers((start_handler, register_handler,pos_handler, msg_handler, login_handler, logout_handler, stats_handler, help_handler, stats_user_handler, current_handler, forecast_handler, set_notify_handler, set_position_handler, delete_user_handler))
     job_queue = application.job_queue
     job_minute = job_queue.run_repeating(callback_minute, interval=120, first=30)
     application.run_polling()

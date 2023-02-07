@@ -13,6 +13,7 @@ NEED_USERNAME_LOG = 4
 NEED_PASSWORD_LOG = 5
 
 LOGGED = 6
+CONFIRM_DELETION = 7
 
 def check_credentials(username, password):
     #Funzione di verifica credenziali in fase di login
@@ -143,10 +144,10 @@ def get_actual_rain(username):
         dictionary = response.json()
     except requests.exceptions.JSONDecodeError:
         print(response.text)
-        return 'Something went wrong!'
+        return 'Something went wrong!', False
     dictionary = dictionary[0]
     if not any(dictionary):
-        return "You don't have any sensor feed yet. Activate a new drying cycle to get some!"
+        return "You don't have any sensor feed yet. Activate a new drying cycle to get some!", False
     for i in dictionary.keys():
         dictionary[i] = dictionary[i] if not dictionary[i] is None else 0
     print(dictionary['sensor_time'])
@@ -154,3 +155,17 @@ def get_actual_rain(username):
 
 def get_community(username):
     return True
+
+def delete_rack(username, message):
+    if 'YES' not in message:
+        return LOGGED, "User deletion was NOT performed!"
+    try:
+        response = requests.delete(f'{API_LOCATION}/deletion/{username}')
+    except ConnectionError:
+        return False
+    print(response.text)
+    if response.status_code != 200:
+        print(response.text)
+        return LOGGED, 'Something went wrong!'
+    else:
+        return UNLOGGED, 'Your user was deleted successfully! Now you can /login or /register'

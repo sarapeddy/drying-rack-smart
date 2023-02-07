@@ -583,7 +583,7 @@ def cancel_all(user):
         500:
             description: Internal Server Error
     """
-    result = Queries.select_last_drying_cycle(user, cur)
+    result = Queries.select_user(user, cur)
     if not result:
         return 'Username invalid'
     username = result[0][0]
@@ -591,8 +591,8 @@ def cancel_all(user):
         # aggiungere on delete cascade sulla tabella sensor_feed
         #Queries.delete_all_drying_cycle(user, cur)
         #Queries.delete_weather_feed(user, cur)
-        #Queries.delete_user(user, cur)
-        #cnx.commit()
+        Queries.delete_user(user, cur)
+        cnx.commit()
         print(username)
     except Exception as e:
         print(e)

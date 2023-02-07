@@ -238,6 +238,12 @@ def select_last_drying_cycle(user, cur):
     result = cur.fetchall()
     return result
 
+def select_user(user, cur):
+    query = f"select * from rack_user where user_name like '{user}';"
+    cur.execute(query)
+    result = cur.fetchall()
+    return result
+
 
 def delete_last_drying_cycle(id, cur):
     query = f"delete from drying_cycle where " \
