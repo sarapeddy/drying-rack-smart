@@ -27,6 +27,8 @@ def create_db(cnx, cur):
             f"    user_name varchar(255) not null, " \
             f"    is_active bool default true, " \
             f"    foreign key(user_name) references rack_user(user_name) " \
+            f"    on delete cascade " \
+            f"    on update cascade " \
             f"); "
     cur.execute(query)
     cnx.commit()
@@ -41,6 +43,8 @@ def create_db(cnx, cur):
             f"    cloth_weight int, " \
             f"    cycle_id int not null, " \
             f"    foreign key(cycle_id) references drying_cycle(id) " \
+            f"    on delete cascade " \
+            f"    on update cascade " \
             f"); "
     cur.execute(query)
     cnx.commit()
@@ -49,4 +53,16 @@ def create_db(cnx, cur):
 
 
 def insert_base_data(cnx, cur):
-    pass
+    query = "insert into rack_user(user_name, pin, lat, lon)" \
+            "values ('cosimo', '12345678', 44.78, 10.94) ;"
+    cur.execute(query)
+    cnx.commit()
+
+
+def drop_tables(cnx, cur):
+    query = " drop table sensor_feed; " \
+            " drop table weather_feed; " \
+            " drop table drying_cycle; " \
+            " drop table rack_user; "
+    cur.execute(query)
+    cnx.commit()
