@@ -14,6 +14,8 @@ create table weather_feed (
     user_name varchar(255) not null,
     weather_time datetime default current_timestamp not null,
     foreign key(user_name) references rack_user(user_name)
+    on update cascade
+	on delete cascade
 );
 
 create table drying_cycle(
