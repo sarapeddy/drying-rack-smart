@@ -588,11 +588,9 @@ def cancel_all(user):
         return 'Username invalid'
     username = result[0][0]
     try:
-        # aggiungere on delete cascade sulla tabella sensor_feed
-        #Queries.delete_all_drying_cycle(user, cur)
-        #Queries.delete_weather_feed(user, cur)
-        #Queries.delete_user(user, cur)
-        #cnx.commit()
+        Queries.delete_weather_feed(user, cur)
+        Queries.delete_user(user, cur)
+        cnx.commit()
         print(username)
     except Exception as e:
         print(e)
