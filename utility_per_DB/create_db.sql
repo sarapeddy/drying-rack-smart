@@ -22,6 +22,8 @@ create table drying_cycle(
     user_name varchar(255) not null,
     is_active bool default true,
     foreign key(user_name) references rack_user(user_name)
+    on delete cascade
+	on update cascade
 );
 
 create table sensor_feed(
@@ -34,6 +36,8 @@ create table sensor_feed(
     cloth_weight int,
     cycle_id int not null,
     foreign key(cycle_id) references drying_cycle(id)
+    on delete cascade
+	on update cascade
 );
 
 

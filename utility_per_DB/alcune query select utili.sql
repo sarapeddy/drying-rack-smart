@@ -18,9 +18,9 @@ and sensor_feed.id >= all (select sensor_feed.id from sensor_feed join drying_cy
                             
 #Seleziona l'ultimo sensor_feed ricevuto da un dato utente
 select * from sensor_feed s join drying_cycle d on(s.cycle_id = d.id)
-where d.user_name like 'ilVincio'
+where d.user_name like 'bucci23'
 and s.id >= all(select s1.id from sensor_feed s1 join drying_cycle d1 on (s1.cycle_id = d1.id)
-				where d1.user_name like 'ilVincio');
+				where d1.user_name like 'bucci23');
 
 #seleziona l'ultimo weather_feed dato un utente
 select * from weather_feed join rack_user
@@ -75,10 +75,9 @@ and s2.id <= all(select s1.id from sensor_feed s1
 				where s1.cycle_id = s.cycle_id);
 
 #seleziona lo stato (dentro o fuori) degli stendini degli utenti vicini ad un certo utente(<10km)
-select r.* from rack_user r join rack_user r1
+select r.is_outside from rack_user r join rack_user r1
 where r1.user_name like 'ilVincio'
 and r.user_name not like 'ilVincio'
-and r.is_active is true
 and abs(r.lat-r1.lat)<=0.0753
 and abs(r.lon-r1.lon)<=0.0753;
 #and sqrt((r.lat - r1.lat)*(r.lat - r1.lat) - (r.lon - r1.lon)*(r.lon - r1.lon)) <= 0.1506;
@@ -147,7 +146,3 @@ values(21, 0, 30, 6, 40, 71);
 
 insert into sensor_feed(air_temperature, is_raining, cloth_weight, cycle_id, cloth_humidity, air_humidity)
 values(21, 0, 22, 5, 36, 50);
-
-
-
-
