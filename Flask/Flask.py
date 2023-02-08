@@ -609,6 +609,23 @@ def cancel_all(user):
     return str(username) + ' deleted'
 
 
+@application.route('/ranking')
+def build_ranking():
+    """
+     ---
+    summary: Create ranking based on number of close drying cycle
+    description: Create ranking based on number of close drying cycle
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
+    return Queries.create_ranking_number_of_drying_cycle(cur)
+
+
 if __name__ == '__main__':
     host = '0.0.0.0'
     port = 80

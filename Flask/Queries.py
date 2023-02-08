@@ -284,3 +284,11 @@ def delete_user(user, cur):
             f"; "
     cur.execute(query)
     return user
+
+
+def create_ranking_number_of_drying_cycle(cur):
+    query = f"select count(distinct d.id) as total_cycles, d.user_name from drying_cycle d " \
+            f"where timestampdiff(day, d.start_time, now()) < 30 " \
+            f"group by d.user_name order by 1 desc;"
+    cur.execute(query)
+    return cur.fetchall()
