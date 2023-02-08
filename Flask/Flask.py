@@ -338,7 +338,7 @@ def receive_sensor_feed():
     return Queries.create_new_sensor_feed(request.get_json(), cur, cnx)
 
 
-@application.route('/<int:drying_cycle>/inactive')
+@application.route('/<int:drying_cycle>/inactive', methods=['PUT'])
 def set_drying_cycle_inactive(drying_cycle):
     """
     ---
