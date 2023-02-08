@@ -4,7 +4,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, ContextTypes, filters
 from telegram.ext import ContextTypes, Application
 import utilities
-from utilities import UNLOGGED, NEED_PASSWORD_LOG, NEED_PASSWORD_REG, NEED_POSITION_REG, NEED_USERNAME_LOG, NEED_USERNAME_REG, LOGGED, CONFIRM_DELETION
+from utilities import UNLOGGED, NEED_PASSWORD_LOG, NEED_PASSWORD_REG, NEED_POSITION_REG, NEED_USERNAME_LOG, NEED_USERNAME_REG, LOGGED, CONFIRM_DELETION, CONFIRM_DELETION_CYCLE
 BOTKEY = '6152911022:AAHcG-1rkKjBmuv_dZw7iXGrg8jGLbPempM'
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -41,7 +41,9 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                                                             "/current - See the current status of your drying rack\n"\
                                                                             "/forecast - See the best time to dry your clothes\n"\
                                                                             "/notify ON or OFF - turn on or off notifications\n"\
-                                                                            "/position IN or OUT - set your drying rack inside or outside")
+                                                                            "/position IN or OUT - set your drying rack inside or outside"\
+                                                                            "/delete_user to delete your account"\
+                                                                            "/delete_cycle to delete your last drying cycle")
 async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #Handler del comando di /register
     #Inizia il processo di registrazione
@@ -89,6 +91,9 @@ async def message_manager(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif user_data[c_id].status == CONFIRM_DELETION:
         user_data[c_id].status, response = utilities.delete_rack(user_data[c_id].username, message)
         await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+    elif user_data[c_id].status == CONFIRM_DELETION_CYCLE:
+        user_data[c_id].status, response = utilities.delete_cycle(user_data[c_id].username, message)
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
 
 
 #Handler del comando login       
@@ -103,7 +108,7 @@ async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Again, please insert your username!")
     elif user_data[c_id].status  == NEED_PASSWORD_LOG:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Again, please insert your password!")
-    elif user_data[c_id].status  == LOGGED:
+    elif (user_data[c_id].status  == LOGGED or user_data[c_id].status  == CONFIRM_DELETION) or user_data[c_id].status  == CONFIRM_DELETION_CYCLE:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="You are alredy logged in, to log out type /logout")
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="You were registering, finish that procedure before trying something else!")
@@ -207,6 +212,7 @@ async def callback_minute(context: ContextTypes.DEFAULT_TYPE):
                         await context.bot.send_message(chat_id=i, text="Some rack users near you has taken his rack inside, maybe you should too!")
 
 async def set_notify(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    #Handler for the /notify command
     c_id = update.effective_chat.id
     if not c_id in user_data.keys():
         user_data[c_id] = user()
@@ -228,6 +234,7 @@ async def set_notify(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Your notifications are ON") if user_data[c_id].notify is True else context.bot.send_message(chat_id=update.effective_chat.id, text="Your notifications are OFF")
     
 async def set_position(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    #Handler for the /position command
     c_id = update.effective_chat.id
     if not c_id in user_data.keys():
         user_data[c_id] = user()
@@ -249,6 +256,7 @@ async def set_position(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 async def delete_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    #Handler for the /delete command
     c_id = update.effective_chat.id
     if not c_id in user_data.keys():
         user_data[c_id] = user()
@@ -258,6 +266,18 @@ async def delete_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         user_data[c_id].status = CONFIRM_DELETION
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Are you SURE? All your data will be deleted! [YES, no]")
+
+async def delete_cycle(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    #Handler for the /delete_cycle command
+    c_id = update.effective_chat.id
+    if not c_id in user_data.keys():
+        user_data[c_id] = user()
+    if user_data[c_id].status != LOGGED and user_data[c_id] != CONFIRM_DELETION_CYCLE:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="You need to login to use this command")
+    else:
+        user_data[c_id].status = CONFIRM_DELETION_CYCLE
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Are you SURE? Your last drying cycle will be deleted! [YES, no]")
+
 if __name__ == '__main__':
     application = ApplicationBuilder().token(BOTKEY).build()
     start_handler = CommandHandler('start', start)
@@ -274,7 +294,8 @@ if __name__ == '__main__':
     set_notify_handler = CommandHandler('notify', set_notify)
     set_position_handler = CommandHandler('position', set_position)
     delete_user_handler = CommandHandler('delete_user', delete_user)
-    application.add_handlers((start_handler, register_handler,pos_handler, msg_handler, login_handler, logout_handler, stats_handler, help_handler, stats_user_handler, current_handler, forecast_handler, set_notify_handler, set_position_handler, delete_user_handler))
+    delete_cycle_handler = CommandHandler('delete_cycle', delete_cycle)
+    application.add_handlers((start_handler, register_handler,pos_handler, msg_handler, login_handler, logout_handler, stats_handler, help_handler, stats_user_handler, current_handler, forecast_handler, set_notify_handler, set_position_handler, delete_user_handler, delete_cycle_handler))
     job_queue = application.job_queue
     job_minute = job_queue.run_repeating(callback_minute, interval=120, first=30)
     application.run_polling()

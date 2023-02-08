@@ -4,7 +4,7 @@ import serial
 import serial.tools.list_ports
 from configparser import ConfigParser
 import requests
-
+import utilities
 
 class Bridge:
     """
@@ -22,6 +22,7 @@ class Bridge:
         self.setupSerial()
         self.new_state = 0
         self.current_state = 0
+        self.last_time = time.time()
 
     def check_credentials(self):
         while True:
@@ -30,7 +31,7 @@ class Bridge:
                 'password': input("Insert password: ")
             }
 
-            r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/credentials", json=self.user)
+            r = requests.post(url=f"http://{self.config.get('Api', 'host')}/credentials", json=self.user)
             if r.text == "Login":
                 break
 
@@ -77,7 +78,7 @@ class Bridge:
     def check_weight(self, weight):
         if self.last_force_feed is not None:
             if weight < 50 and self.last_force_feed < 50:
-                r = requests.get(url=f"http://{self.config.get('Api', 'host')}:5000/{self.cycle_id}/inactive")
+                r = requests.get(url=f"http://{self.config.get('Api', 'host')}/{self.cycle_id}/inactive")
                 self.last_force_feed = None
                 self.cycle_id = None
                 self.current_state = 0
@@ -91,12 +92,12 @@ class Bridge:
             if current_state != new_state:
                 if new_state:
                     buffer = 'start'
-                    r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/drying-cycle",
+                    r = requests.post(url=f"http://{self.config.get('Api', 'host')}/drying-cycle",
                                       json={'user': self.user['username']})
                     self.cycle_id = int(r.text)
                 else:
                     buffer = 'finish'
-                    r = requests.get(url=f"http://{self.config.get('Api', 'host')}:5000/{self.cycle_id}/inactive")
+                    r = requests.get(url=f"http://{self.config.get('Api', 'host')}/{self.cycle_id}/inactive")
                     self.cycle_id = None
 
                 self.ser.write(buffer.encode(encoding='ascii', errors='strict'))
@@ -108,6 +109,36 @@ class Bridge:
             self.ser.close()
             self.ser = serial.Serial(self.port_name, 9600, timeout=1)
 
+    def notifies(self):
+        cur_time = time.time()
+        if((cur_time - self.last_time) > 5):           
+            self.last_time = cur_time
+            actual_rain = utilities.get_actual_rain(self.user['username'])
+            predicted_rain = utilities.is_going_to_rain(self.user['username']) 
+            com = utilities.get_community(self.user['username'])
+            buffer = "E"
+            if(com == 1):
+                buffer = "T"
+            if(predicted_rain == 1):
+                buffer = "R"
+            if(actual_rain == 1):
+                buffer = "I"
+            print(buffer)
+            perc = utilities.get_percentage(self.user['username'])
+            if(perc<10):
+                perc = f'0{perc}'
+            buffer = f'{buffer}{perc}'
+            self.ser.write(buffer.encode(encoding='ascii', errors='strict'))
+
+    def percentage(self):
+        cur_time = time.time()
+        if (cur_time - self.last_time_perc) > 5:
+                self.last_time_perc = cur_time
+                perc = utilities.get_percentage(self.user['username'])
+                buffer = f'drying {perc}%\0'
+                self.ser.write(buffer.encode(encoding='ascii', errors='strict'))
+                print(buffer)
+        
     def loop(self):
         # infinite loop for serial managing
         while True:
@@ -120,13 +151,14 @@ class Bridge:
                         self.new_state = json_data["state"]
                     except KeyError:
                         if json_data != {} and self.current_state == 1:
-                            r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/sensors/data", json=json_data)
+                            r = requests.post(url=f"http://{self.config.get('Api', 'host')}/sensors/data", json=json_data)
                             if self.check_weight(int(json_data["cloth_weight"])):
                                 buffer = 'force-finish'
                                 self.ser.write(buffer.encode(encoding='ascii', errors='strict'))
 
                 #write on serial port
                 self.current_state = self.start_or_finish_drying_cycle(self.current_state, self.new_state)
+                self.notifies()
 
 
 if __name__ == '__main__':

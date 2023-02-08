@@ -14,6 +14,7 @@ NEED_PASSWORD_LOG = 5
 
 LOGGED = 6
 CONFIRM_DELETION = 7
+CONFIRM_DELETION_CYCLE = 8
 
 def check_credentials(username, password):
     #Funzione di verifica credenziali in fase di login
@@ -169,3 +170,17 @@ def delete_rack(username, message):
         return LOGGED, 'Something went wrong!'
     else:
         return UNLOGGED, 'Your user was deleted successfully! Now you can /login or /register'
+
+def delete_cycle(username, message):
+    if 'YES' not in message:
+        return LOGGED, "Cycle deletion was NOT performed!"
+    try:
+        response = requests.delete(f'{API_LOCATION}/deletion/drying_cycle/{username}')
+    except ConnectionError:
+        return False
+    print(response.text)
+    if response.status_code != 200:
+        print(response.text)
+        return LOGGED, 'Something went wrong!'
+    else:
+        return LOGGED, 'Your last drying cycle was successfully deleted!'

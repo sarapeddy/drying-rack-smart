@@ -1,4 +1,6 @@
 #include <dht.h>
+#include <LiquidCrystal.h>
+#include <ctype.h>
 #include "Timer.h"
 
 #define DHT11_PIN 2
@@ -16,6 +18,9 @@ int fsrreading;
 int rain;
 float moisture_cloth_perc;
 bool state;
+
+const int rs = 7, en = 8, d4 = 9, d5 = 10, d6 = 12, d7 = 13;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 void set_color(bool red, bool green, bool blue){
   digitalWrite(RED, red);
@@ -36,6 +41,8 @@ void setup(){
   /* SET BUTTON DRYING CYCLE */
   pinMode(BUTTON, INPUT);
   state = false;
+  lcd.begin(16, 2);
+  lcd.print("Hello World!");
 }
 
 void loop(){
@@ -78,15 +85,54 @@ void loop(){
     
     if(str == "start"){
       set_color(1, 0, 0);
+      lcd.setCursor(0, 0);
+      lcd.print(str);  
     }
-
     if(str == "finish"){
       set_color(0, 1, 0);
+      lcd.setCursor(0, 0);
+      lcd.print(str);  
     }
-
     if(str == "force-finish"){
       set_color(0, 1, 0);
+      lcd.setCursor(0, 0);
+      lcd.print(str);  
       state = !state;
+
+    }
+    if(str.charAt(0) == 'I'){
+      lcd.setCursor(0, 1);
+      lcd.print("It is raining!");
+    }
+
+    if(str.charAt(0) == 'R'){
+      lcd.setCursor(0, 1);
+      lcd.print("                ");
+      lcd.setCursor(0, 1);
+      lcd.print("Rain incoming!");      
+    }
+
+    if(str.charAt(0) == 'E'){
+      lcd.setCursor(0, 1);
+      lcd.print("                ");
+      lcd.setCursor(0, 1);
+      lcd.print("Everything OK");   
+    }
+    if(str.charAt(0) == 'T'){
+      lcd.setCursor(0, 1);
+      lcd.print("                ");
+      lcd.setCursor(0, 1);
+      lcd.print("Take inside!");   
+    }
+    
+    if(isdigit(str.charAt(1))){
+      str = str.substring(1,3);
+      lcd.setCursor(0, 0);
+      lcd.print("                ");
+      lcd.setCursor(0, 0);
+      lcd.print("Drying ");
+      lcd.print(str);
+      lcd.print("% done");
     }
   }
 }
