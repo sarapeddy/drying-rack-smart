@@ -64,6 +64,7 @@ INSERT = 0  # variabile per inserire dati di prova nel db su AWS
 
 api = Api(application)
 
+
 @application.route('/')
 def hello():
     """
@@ -432,16 +433,17 @@ def show_stats(user=None):
                 normalized_cycle_time_temp=normalized_cycle_time_temp)
 
 
+@application.route('/weather_feed', defaults={'user': None})
 @application.route('/weather_feed/<string:user>', methods=['GET', 'POST'])
-def show_weather_info(user):
+def show_weather_info(user=None):
     """
     ---
-    summary: Give a wheated feed based on the position given in the registration phase.
-    description: Give a wheated feed based on the position given in the registration phase.
+    summary: Give a weather feed based on the position given in the registration phase.
+    description: Give a weather feed based on the position given in the registration phase.
     parameters:
       - name: User
         in: path
-        required: true
+        required: false
         schema:
             type: string
             example: mariorossi
@@ -455,9 +457,13 @@ def show_weather_info(user):
     """
     if request.method == 'POST':
         return abort(405)
+    elif user == None:
+        return 'Insert a username to view information'
     else:
         myweather = OpenWeather(key_weather)
         result = Queries.select_lat_lon(user, cur)
+        if len(result) == 0:
+            return 'Invalid username'
         lat = result[0][0]
         lon = result[0][1]
         temp = myweather.get_temperature(lat, lon)
