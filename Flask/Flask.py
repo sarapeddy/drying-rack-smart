@@ -293,7 +293,11 @@ def create_new_drying_clycle():
         500:
             description: Internal Server Error
     """
-    return Queries.create_new_drying_cycle(request.get_json(), cur, cnx)
+    request_data = request.get_json()
+    result = Queries.select_user(request_data['user'], cur)
+    if not result:
+        return 'Invalid username'
+    return Queries.create_new_drying_cycle(request_data, cur, cnx)
 
 
 @application.route('/sensors/data', methods=['POST'])
