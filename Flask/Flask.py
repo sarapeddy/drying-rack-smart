@@ -6,13 +6,15 @@ from configparser import ConfigParser
 from OpenWeather import OpenWeather
 from Stats import Statistics
 from Registration import Registration
-from flasgger import Swagger, LazyString, LazyJSONEncoder, swag_from
+from flasgger import Swagger, LazyString, LazyJSONEncoder
+from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
 import Queries
 import Creation
 
 appname = "Smart Drying-rack"
 application = Flask(appname)
+CORS(application)
 application.json_encoder = LazyJSONEncoder
 
 config = ConfigParser()
@@ -61,7 +63,6 @@ CREATE = 0  # variabile per la creazione del db su AWS
 INSERT = 0  # variabile per inserire dati di prova nel db su AWS
 
 api = Api(application)
-
 
 @application.route('/')
 def hello():
