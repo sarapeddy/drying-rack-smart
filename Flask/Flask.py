@@ -321,7 +321,7 @@ def receive_sensor_feed():
                     example: 19.00
                 cloth_humidity:
                     type: int64
-                    example: 300
+                    example: 50
                 cloth_weight:
                     type: int64
                     example: 600
