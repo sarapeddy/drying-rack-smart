@@ -24,7 +24,6 @@ password = config.get('Database', 'password')
 host = config.get('Database', 'host')
 database = config.get('Database', 'database')
 raise_on = bool(config.get('Database', 'raise_on_warnings'))
-# print(user, password, host, database, raise_on, type(raise_on))
 
 swagger_template = dict(
     info={
@@ -461,7 +460,7 @@ def show_weather_info(user=None):
     """
     if request.method == 'POST':
         return abort(405)
-    elif user == None:
+    elif user is None:
         return 'Insert a username to view information'
     else:
         myweather = OpenWeather(key_weather)
