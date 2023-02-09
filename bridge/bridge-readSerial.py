@@ -1,8 +1,8 @@
-import json
 import time
 import serial
 import serial.tools.list_ports
 from configparser import ConfigParser
+from getpass import getpass
 import requests
 
 
@@ -27,9 +27,9 @@ class Bridge:
         while True:
             self.user = {
                 'username': input("Insert username: "),
-                'password': input("Insert password: ")
+                'password': getpass('Insert password: ', stream=None)
             }
-
+            print(self.user)
             r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/credentials", json=self.user)
             if r.text == "Login":
                 break
