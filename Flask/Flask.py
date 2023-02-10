@@ -269,6 +269,81 @@ def check_credentials():
     return "Uncorrect username or/and password"
 
 
+@application.route('/credentials/password', methods=['PUT'])
+def recover_change_credentials():
+    """
+    ---
+    summary: Change password
+    description: Change password of a logged user
+    parameters:
+      - name: User
+        in: body
+        required: true
+        schema:
+            type: object
+            properties:
+                password:
+                    type: string
+                    required: false
+                    example: 12345678
+                new_password:
+                    type: string
+                    required: false
+                    example: 87654321
+                username:
+                    type: string
+                    example: mariorossi
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
+    try:
+        request_data = request.get_json()
+        if len(str(request_data['new_password'])) < 8:
+            return 'At least 8 characters needed'
+        result = Queries.check_rack_user(request_data, cur)
+        print(result)
+        if result:
+            Queries.update_password(request_data, cur, cnx)
+            return "Password changed"
+    except KeyError:
+        return "Uncorrect json format"
+    return "Uncorrect username or/and password"
+
+
+@application.route('/credentials/password/<string:user>')
+def recover_password(user=None):
+    """
+        ---
+        summary: Recover password
+        description: Recover password of a user
+        parameters:
+          - name: User
+            in: string
+            required: true
+            schema:
+                type: string
+                example: mariorossi
+        responses:
+            200:
+                description: OK
+            400:
+                description: Client Error
+            500:
+                description: Internal Server Error
+        """
+    if user is None:
+        return 'user is required to recover password'
+    result = Queries.select_user(user, cur)
+    if not result:
+        return 'Invalid username'
+    return result[0][1]
+
+
 @application.route('/drying-cycle', methods=['POST'])
 def create_new_drying_clycle():
     """

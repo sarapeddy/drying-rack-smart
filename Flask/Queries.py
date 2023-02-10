@@ -314,3 +314,11 @@ def select_profile_info(user, cur):
             f";"
     cur.execute(query)
     return cur.fetchall()
+
+
+def update_password(data, cur, cnx):
+    query = f"update rack_user set pin = {data['new_password']} " \
+            f"where user_name = '{data['username']}';"
+    cur.execute(query)
+    cnx.commit()
+    return 'Correct operation'
