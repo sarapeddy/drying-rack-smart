@@ -1,14 +1,14 @@
-import json
 import time
 import serial
 import serial.tools.list_ports
 from configparser import ConfigParser
+from getpass import getpass
 import requests
 import utilities
 
 class Bridge:
     """
-        This class is the bridge between Arduino and Flask for Drying Rack Smart Iot Project
+    This class is the bridge between Arduino and Flask for Drying Rack Smart Iot Project
     """
     def __init__(self):
         self.port_name = None
@@ -28,10 +28,10 @@ class Bridge:
         while True:
             self.user = {
                 'username': input("Insert username: "),
-                'password': input("Insert password: ")
+                'password': getpass('Insert password: ', stream=None)
             }
-
-            r = requests.post(url=f"http://{self.config.get('Api', 'host')}/credentials", json=self.user)
+            print(self.user)
+            r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/credentials", json=self.user)
             if r.text == "Login":
                 break
 
@@ -76,14 +76,20 @@ class Bridge:
         return json_data
 
     def check_weight(self, weight):
+        """
+        This function controls if the clothes are still on the drying rack through the weight detected by the force sensor
+        :param
+        weight: the current clothes weight
+        :return
+        bool: represent if the drying cycle was interrupted by checking the weight
+        """
         if self.last_force_feed is not None:
             if weight < 50 and self.last_force_feed < 50:
-                r = requests.get(url=f"http://{self.config.get('Api', 'host')}/{self.cycle_id}/inactive")
-                self.last_force_feed = None
-                self.cycle_id = None
-                self.current_state = 0
-                self.new_state = 0
-                return True
+                r = requests.put(url=f"http://{self.config.get('Api', 'host')}:5000/{self.cycle_id}/inactive")
+                if r.status_code == 200:
+                    self.last_force_feed = self.cycle_id = None
+                    self.current_state = self.new_state = 0
+                    return True
         self.last_force_feed = weight
         return False
 
@@ -94,11 +100,13 @@ class Bridge:
                     buffer = 'start'
                     r = requests.post(url=f"http://{self.config.get('Api', 'host')}/drying-cycle",
                                       json={'user': self.user['username']})
-                    self.cycle_id = int(r.text)
+                    if r.status_code == 200:
+                        self.cycle_id = int(r.text)
                 else:
                     buffer = 'finish'
                     r = requests.put(url=f"http://{self.config.get('Api', 'host')}:5000/{self.cycle_id}/inactive")
-                    self.cycle_id = None
+                    if r.status_code == 200:
+                        self.cycle_id = None
 
                 self.ser.write(buffer.encode(encoding='ascii', errors='strict'))
                 time.sleep(0.5)
@@ -151,12 +159,14 @@ class Bridge:
                         self.new_state = json_data["state"]
                     except KeyError:
                         if json_data != {} and self.current_state == 1:
-                            r = requests.post(url=f"http://{self.config.get('Api', 'host')}/sensors/data", json=json_data)
+                            requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/sensors/data", json=json_data)
+
+                            # check id the clothes are still on the drying rack
                             if self.check_weight(int(json_data["cloth_weight"])):
                                 buffer = 'force-finish'
                                 self.ser.write(buffer.encode(encoding='ascii', errors='strict'))
 
-                #write on serial port
+                #write on serial port to check the Arduino state
                 self.current_state = self.start_or_finish_drying_cycle(self.current_state, self.new_state)
                 self.notifies()
 
