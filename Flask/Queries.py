@@ -107,6 +107,19 @@ def select_state(user, cur):
     return result
 
 
+def select_state_all(user, cur):
+    # seleziona lo stato (dentro o fuori) degli stendini degli utenti vicini ad un certo utente(<10km)
+    query = f"select r.* from rack_user r join rack_user r1 " \
+            f"where r1.user_name like '{user}' " \
+            f"and r.user_name not like '{user}' " \
+            f"and abs(r.lat-r1.lat)<=0.0753 " \
+            f"and abs(r.lon-r1.lon)<=0.0753 " \
+            f";"
+    cur.execute(query)
+    result = cur.fetchall()
+    return result
+
+
 def select_closing_time_drying_cycle(user, cur):
     # seleziona il momento di chiusura dell'ultimo ciclo di asciugatura concluso di un dato utente
     query = f"select * from sensor_feed s join drying_cycle d " \

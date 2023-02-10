@@ -650,15 +650,51 @@ def show_user_info(user):
     result = Queries.select_profile_info(user, cur)
     if not result:
         return 'Username invalid'
-    print(result)
     if result[0][3]:
         place = 'outside'
     else:
         place = 'inside'
     mydict = dict(username=result[0][0], latitude=result[0][1], longitude=result[0][2],
                   place=place, active=result[0][4])
-    print(mydict)
     return json.dumps(mydict, indent=4)
+
+
+@application.route('/community/<string:user>')
+def control_com(user):
+    """
+     ---
+    summary: Give information about the community
+    description: Give information about the community in order to see if the drying rack is inside or outside
+    parameters:
+      - name: User
+        in: string
+        required: true
+        schema:
+            type: string
+            example: mariorossi
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
+    result = Queries.select_state(user, cur)
+    if not result:
+        return 'Error'
+    #print(result)
+
+    result2 = Queries.select_state_all(user, cur)
+    if not result2:
+        return 'Error'
+    #print(result2)
+
+    len_inside = len(result)
+    len_outside = len(result2)
+    if len_inside/len_outside > 0.5:
+        return 'Inside'
+    return 'Outside'
 
 
 if __name__ == '__main__':
