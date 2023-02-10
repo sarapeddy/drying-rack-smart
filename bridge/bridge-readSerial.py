@@ -30,8 +30,7 @@ class Bridge:
                 'username': input("Insert username: "),
                 'password': getpass('Insert password: ', stream=None)
             }
-            print(self.user)
-            r = requests.post(url=f"http://{self.config.get('Api', 'host')}/credentials", json=self.user)
+            r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/credentials", json=self.user)
             if r.text == "Login":
                 break
 
@@ -98,7 +97,7 @@ class Bridge:
             if current_state != new_state:
                 if new_state:
                     buffer = 'start'
-                    r = requests.post(url=f"http://{self.config.get('Api', 'host')}/drying-cycle",
+                    r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/drying-cycle",
                                       json={'user': self.user['username']})
                     if r.status_code == 200:
                         self.cycle_id = int(r.text)

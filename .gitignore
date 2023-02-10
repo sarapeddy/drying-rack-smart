@@ -2,6 +2,7 @@ Pip*
 .idea
 config.ini
 /Flask/__pycache__
+/bridge/__pycache__
 bridge/.vs/VSWorkspaceState.json
 bridge/.vs/slnx.sqlite
 bridge/.vs/PythonSettings.json

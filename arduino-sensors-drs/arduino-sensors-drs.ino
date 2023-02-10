@@ -18,6 +18,7 @@ int fsrreading;
 int rain;
 float moisture_cloth_perc;
 bool state;
+bool drying_cycle;
 
 const int rs = 7, en = 8, d4 = 9, d5 = 10, d6 = 12, d7 = 13;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
@@ -41,6 +42,7 @@ void setup(){
   /* SET BUTTON DRYING CYCLE */
   pinMode(BUTTON, INPUT);
   state = false;
+  drying_cycle = false;
   lcd.begin(16, 2);
   lcd.print("Press Button"); 
   lcd.setCursor(0, 1);
@@ -48,12 +50,16 @@ void setup(){
 }
 
 void loop(){
+  
   /* CHECK WHEN THE BUTTON IS PRESSED */
   int buttonState = digitalRead(BUTTON);
-  delay(300);
-  if(buttonState == HIGH){
+  if(buttonState == HIGH && drying_cycle == false){
     state = !state;
+    drying_cycle = true;
     Serial.println(state);
+  }
+  if(buttonState == LOW && drying_cycle == true) {
+    drying_cycle = false;
   }
 
   if(t.check() && state == true){
