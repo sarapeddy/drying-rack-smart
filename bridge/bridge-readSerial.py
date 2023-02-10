@@ -137,16 +137,7 @@ class Bridge:
                 perc = f'0{perc}'
             buffer = f'{buffer}{perc}'
             self.ser.write(buffer.encode(encoding='ascii', errors='strict'))
-
-    def percentage(self):
-        cur_time = time.time()
-        if (cur_time - self.last_time_perc) > 5:
-                self.last_time_perc = cur_time
-                perc = utilities.get_percentage(self.user['username'])
-                buffer = f'drying {perc}%\0'
-                self.ser.write(buffer.encode(encoding='ascii', errors='strict'))
-                print(buffer)
-        
+       
     def loop(self):
         # infinite loop for serial managing
         while True:

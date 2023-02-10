@@ -42,7 +42,9 @@ void setup(){
   pinMode(BUTTON, INPUT);
   state = false;
   lcd.begin(16, 2);
-  lcd.print("Hello World!");
+  lcd.print("Press Button"); 
+  lcd.setCursor(0, 1);
+  lcd.print("to start drying");
 }
 
 void loop(){
