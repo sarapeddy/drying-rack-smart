@@ -41,9 +41,10 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                                                             "/current - See the current status of your drying rack\n"\
                                                                             "/forecast - See the best time to dry your clothes\n"\
                                                                             "/notify ON or OFF - turn on or off notifications\n"\
-                                                                            "/position IN or OUT - set your drying rack inside or outside"\
-                                                                            "/delete_user to delete your account"\
-                                                                            "/delete_cycle to delete your last drying cycle")
+                                                                            "/position IN or OUT - set your drying rack inside or outside\n"\
+                                                                            "/delete_user - to delete your account\n"\
+                                                                            "/delete_cycle - to delete your last drying cycle\n"\
+                                                                            "/ranking - to see who is the best dryier! ")
 async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #Handler del comando di /register
     #Inizia il processo di registrazione
