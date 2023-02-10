@@ -292,3 +292,12 @@ def create_ranking_number_of_drying_cycle(cur):
             f"group by d.user_name order by 1 desc;"
     cur.execute(query)
     return cur.fetchall()
+
+
+def select_profile_info(user, cur):
+    query = f"select user_name, lat, lon, is_outside, is_active " \
+            f"from rack_user " \
+            f"where user_name = '{user}' " \
+            f";"
+    cur.execute(query)
+    return cur.fetchall()

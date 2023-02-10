@@ -25,6 +25,7 @@ host = config.get('Database', 'host')
 database = config.get('Database', 'database')
 raise_on = bool(config.get('Database', 'raise_on_warnings'))
 
+
 swagger_template = dict(
     info={
         'title': LazyString(lambda: 'Smart Drying Rack'),
@@ -623,6 +624,41 @@ def build_ranking():
             description: Internal Server Error
     """
     return Queries.create_ranking_number_of_drying_cycle(cur)
+
+
+@application.route('/profile/<string:user>')
+def show_user_info(user):
+    """
+     ---
+    summary: Give profile information about the user
+    description: Give profile information about the user and its drying-rack
+    parameters:
+      - name: User
+        in: string
+        required: true
+        schema:
+            type: string
+            example: mariorossi
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
+    result = Queries.select_profile_info(user, cur)
+    if not result:
+        return 'Username invalid'
+    print(result)
+    if result[0][3]:
+        place = 'outside'
+    else:
+        place = 'inside'
+    mydict = dict(username=result[0][0], latitude=result[0][1], longitude=result[0][2],
+                  place=place, active=result[0][4])
+    print(mydict)
+    return json.dumps(mydict, indent=4)
 
 
 if __name__ == '__main__':
