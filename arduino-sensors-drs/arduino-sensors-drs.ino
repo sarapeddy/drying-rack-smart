@@ -31,7 +31,7 @@ void set_color(bool red, bool green, bool blue){
 
 void setup(){
   Serial.begin(9600);
-  t.set(300000);
+  t.set(5000);
   
   /* SET RGB LED */
   pinMode(RED, OUTPUT);
@@ -47,13 +47,14 @@ void setup(){
   lcd.print("Press Button"); 
   lcd.setCursor(0, 1);
   lcd.print("to start drying");
+
 }
 
 void loop(){
   
   /* CHECK WHEN THE BUTTON IS PRESSED */
-  int buttonState = digitalRead(BUTTON);
-  if(buttonState == HIGH && drying_cycle == false){
+  int buttonState = 1 - digitalRead(BUTTON);
+  if(buttonState == HIGH && drying_cycle ==   false){
     state = !state;
     drying_cycle = true;
     Serial.println(state);
@@ -65,7 +66,7 @@ void loop(){
   if(t.check() && state == true){
     /*DHT11: AIR HUMIDITY AND TEMPERATURE*/
     int chk = DHT.read11(DHT11_PIN);
-  
+
     /*CAPACITIVE SOIL MOISTURE SENSOR*/
     moisture_cloth_perc = analogRead(MOISTURESENSOR);
     moisture_cloth_perc = 100 - moisture_cloth_perc*100/1023;

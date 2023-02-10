@@ -157,6 +157,28 @@ def get_actual_rain(username):
 def get_community(username):
     return True
 
+def get_rankings(username):
+    try:
+        response = requests.get(f'{API_LOCATION}/ranking')
+    except ConnectionError:
+        return 'Connection Error: API probably offline, please retry later'
+    try:
+        result_list = response.json()
+    except requests.exceptions.JSONDecodeError:
+        print(response.text)
+        return 'Something went wrong!'
+    result = f"These are the top StendAPP users:\n"
+    found = -1
+    j=1
+    for i in result_list:
+        result = f"{result}{j}: {i[1]}, {i[0]} cycles\n"
+        if username in i[1]:
+            found = j
+        j+=1
+    result = f"{result}You are in {found} position." if found != -1 else f"{result}You haven't done any drying yet"
+
+    return result
+
 def delete_rack(username, message):
     if 'YES' not in message:
         return LOGGED, "User deletion was NOT performed!"

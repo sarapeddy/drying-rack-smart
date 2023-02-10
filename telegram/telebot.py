@@ -64,7 +64,7 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="You were logging, finish that procedure before trying something else!")
 
-#Gestore dei messaggi: (tutto ciò che non è comando)
+#Gestore dei messaggi: (tutto ciÃ² che non Ã¨ comando)
 async def message_manager(update: Update, context: ContextTypes.DEFAULT_TYPE):
     c_id = update.effective_chat.id
     message = update.message.text
@@ -278,6 +278,16 @@ async def delete_cycle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_data[c_id].status = CONFIRM_DELETION_CYCLE
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Are you SURE? Your last drying cycle will be deleted! [YES, no]")
 
+async def ranking(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    c_id = update.effective_chat.id
+    if not c_id in user_data.keys():
+        user_data[c_id] = user()
+    if user_data[c_id].status != LOGGED:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="You need to login to use this command")
+        return
+    response = utilities.get_rankings(user_data[c_id].username)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+
 if __name__ == '__main__':
     application = ApplicationBuilder().token(BOTKEY).build()
     start_handler = CommandHandler('start', start)
@@ -295,7 +305,8 @@ if __name__ == '__main__':
     set_position_handler = CommandHandler('position', set_position)
     delete_user_handler = CommandHandler('delete_user', delete_user)
     delete_cycle_handler = CommandHandler('delete_cycle', delete_cycle)
-    application.add_handlers((start_handler, register_handler,pos_handler, msg_handler, login_handler, logout_handler, stats_handler, help_handler, stats_user_handler, current_handler, forecast_handler, set_notify_handler, set_position_handler, delete_user_handler, delete_cycle_handler))
+    ranking_handler = CommandHandler('ranking', ranking)
+    application.add_handlers((start_handler, register_handler,pos_handler, msg_handler, login_handler, logout_handler, stats_handler, help_handler, stats_user_handler, current_handler, forecast_handler, set_notify_handler, set_position_handler, delete_user_handler, delete_cycle_handler, ranking_handler))
     job_queue = application.job_queue
     job_minute = job_queue.run_repeating(callback_minute, interval=120, first=30)
     application.run_polling()

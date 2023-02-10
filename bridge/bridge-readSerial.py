@@ -30,7 +30,7 @@ class Bridge:
                 'username': input("Insert username: "),
                 'password': getpass('Insert password: ', stream=None)
             }
-            r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/credentials", json=self.user)
+            r = requests.post(url=f"http://{self.config.get('Api', 'host')}/credentials", json=self.user)
             if r.text == "Login":
                 break
 
@@ -97,7 +97,7 @@ class Bridge:
             if current_state != new_state:
                 if new_state:
                     buffer = 'start'
-                    r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/drying-cycle",
+                    r = requests.post(url=f"http://{self.config.get('Api', 'host')}/drying-cycle",
                                       json={'user': self.user['username']})
                     if r.status_code == 200:
                         self.cycle_id = int(r.text)
@@ -118,6 +118,8 @@ class Bridge:
 
     def notifies(self):
         cur_time = time.time()
+        if self.current_state == 0:
+            return
         if((cur_time - self.last_time) > 5):           
             self.last_time = cur_time
             actual_rain = utilities.get_actual_rain(self.user['username'], self.config)
@@ -131,6 +133,7 @@ class Bridge:
             if(actual_rain == 1):
                 buffer = "I"
             print(buffer)
+            print(self.current_state)
             perc = utilities.get_percentage(self.user['username'], self.config)
             if(perc<10):
                 perc = f'0{perc}'
