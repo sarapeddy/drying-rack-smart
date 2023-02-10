@@ -97,7 +97,7 @@ class Bridge:
                     self.cycle_id = int(r.text)
                 else:
                     buffer = 'finish'
-                    r = requests.get(url=f"http://{self.config.get('Api', 'host')}/{self.cycle_id}/inactive")
+                    r = requests.put(url=f"http://{self.config.get('Api', 'host')}:5000/{self.cycle_id}/inactive")
                     self.cycle_id = None
 
                 self.ser.write(buffer.encode(encoding='ascii', errors='strict'))

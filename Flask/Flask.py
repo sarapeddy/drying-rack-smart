@@ -293,7 +293,11 @@ def create_new_drying_clycle():
         500:
             description: Internal Server Error
     """
-    return Queries.create_new_drying_cycle(request.get_json(), cur, cnx)
+    request_data = request.get_json()
+    result = Queries.select_user(request_data['user'], cur)
+    if not result:
+        return 'Invalid username'
+    return Queries.create_new_drying_cycle(request_data, cur, cnx)
 
 
 @application.route('/sensors/data', methods=['POST'])
@@ -317,7 +321,7 @@ def receive_sensor_feed():
                     example: 19.00
                 cloth_humidity:
                     type: int64
-                    example: 300
+                    example: 50
                 cloth_weight:
                     type: int64
                     example: 600
@@ -603,6 +607,23 @@ def cancel_all(user):
         return ' Deletion gone wrong'
 
     return str(username) + ' deleted'
+
+
+@application.route('/ranking')
+def build_ranking():
+    """
+     ---
+    summary: Create ranking based on number of close drying cycle
+    description: Create ranking based on number of close drying cycle
+    responses:
+        200:
+            description: OK
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    """
+    return Queries.create_ranking_number_of_drying_cycle(cur)
 
 
 if __name__ == '__main__':
