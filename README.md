@@ -33,12 +33,16 @@ Qui il [link](https://www.tinkercad.com/things/hZl0u94ahFn-drying-rack-smart/edi
 - **Force Sensitive Resistor**: serve il pin analogico A1
 - **Rain Sensor**: serve il pin analogico A2
 - **LED RGB**: serve come attuatore per capire se il ciclo di asciugatura è finito o meno. Servono il PIN 3 ROSSO, PIN 4 VERDE e PIN 5 BLU.
+- **LCD Display**
 
 ## Database MySQL
 Il datbase su cui saranno conservati i dati degli utenti sarà gestito con DBMS mySql in una istanza locale, a cui è possibile collegarsi tramite l'utilizzo di una rete virtuale hamachi (scaricabile al [link](https://vpn.net/)).
 
 ## ThesmartStendino Bot
 L'interazione con l'utente è stata implementata tramite la realizzazione di un bot telegram chiamato @ThesmartStendino in cui è possibile loggarsi, vedere statistiche e settare la posizione dello stendino. Nel lungo periodo questo bot dovrebbe trasformarsi in una vera e propria app detta StendApp.
+
+## StendApp
+È stata implementata l'applicazione tramite tramite Thunkable. Il [link](https://x.thunkable.com/projects/63d39417d8fa76021aa61a0c/dd21e5e6-036d-48f2-b3de-258ccee91fa7/designer) al file di sviluppo è questo.
 
 ## Flask
 Per il lato server e per la realizzazione di API Rest in grado di ricevere richieste HTTP ed effettuare le query al db.
