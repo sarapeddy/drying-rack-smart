@@ -88,15 +88,21 @@ void loop(){
     if(str == "start"){
       set_color(1, 0, 0);
       lcd.setCursor(0, 0);
+      lcd.print("                ");
+      lcd.setCursor(0, 0);
       lcd.print(str);  
     }
     if(str == "finish"){
       set_color(0, 1, 0);
       lcd.setCursor(0, 0);
+      lcd.print("                ");
+      lcd.setCursor(0, 0);      
       lcd.print(str);  
     }
     if(str == "force-finish"){
       set_color(0, 1, 0);
+      lcd.setCursor(0, 0);
+      lcd.print("                ");
       lcd.setCursor(0, 0);
       lcd.print(str);  
       state = !state;

@@ -31,7 +31,7 @@ class Bridge:
                 'password': getpass('Insert password: ', stream=None)
             }
             print(self.user)
-            r = requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/credentials", json=self.user)
+            r = requests.post(url=f"http://{self.config.get('Api', 'host')}/credentials", json=self.user)
             if r.text == "Login":
                 break
 
@@ -85,7 +85,7 @@ class Bridge:
         """
         if self.last_force_feed is not None:
             if weight < 50 and self.last_force_feed < 50:
-                r = requests.put(url=f"http://{self.config.get('Api', 'host')}:5000/{self.cycle_id}/inactive")
+                r = requests.put(url=f"http://{self.config.get('Api', 'host')}/{self.cycle_id}/inactive")
                 if r.status_code == 200:
                     self.last_force_feed = self.cycle_id = None
                     self.current_state = self.new_state = 0
@@ -104,7 +104,7 @@ class Bridge:
                         self.cycle_id = int(r.text)
                 else:
                     buffer = 'finish'
-                    r = requests.put(url=f"http://{self.config.get('Api', 'host')}:5000/{self.cycle_id}/inactive")
+                    r = requests.put(url=f"http://{self.config.get('Api', 'host')}/{self.cycle_id}/inactive")
                     if r.status_code == 200:
                         self.cycle_id = None
 
@@ -121,9 +121,9 @@ class Bridge:
         cur_time = time.time()
         if((cur_time - self.last_time) > 5):           
             self.last_time = cur_time
-            actual_rain = utilities.get_actual_rain(self.user['username'])
-            predicted_rain = utilities.is_going_to_rain(self.user['username']) 
-            com = utilities.get_community(self.user['username'])
+            actual_rain = utilities.get_actual_rain(self.user['username'], self.config)
+            predicted_rain = utilities.is_going_to_rain(self.user['username'], self.config) 
+            com = utilities.get_community(self.user['username'], self.config)
             buffer = "E"
             if(com == 1):
                 buffer = "T"
@@ -132,7 +132,7 @@ class Bridge:
             if(actual_rain == 1):
                 buffer = "I"
             print(buffer)
-            perc = utilities.get_percentage(self.user['username'])
+            perc = utilities.get_percentage(self.user['username'], self.config)
             if(perc<10):
                 perc = f'0{perc}'
             buffer = f'{buffer}{perc}'
@@ -150,7 +150,7 @@ class Bridge:
                         self.new_state = json_data["state"]
                     except KeyError:
                         if json_data != {} and self.current_state == 1:
-                            requests.post(url=f"http://{self.config.get('Api', 'host')}:5000/sensors/data", json=json_data)
+                            requests.post(url=f"http://{self.config.get('Api', 'host')}/sensors/data", json=json_data)
 
                             # check id the clothes are still on the drying rack
                             if self.check_weight(int(json_data["cloth_weight"])):
