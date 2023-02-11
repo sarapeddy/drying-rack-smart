@@ -155,6 +155,8 @@ def add_user():
             description: Client Error
         500:
             description: Internal Server Error
+    produces:
+      - text/plain
     """
     data = request.get_json()
     s = check_json(data)
@@ -210,6 +212,8 @@ def add_user_view():
             description: Client Error
         500:
             description: Internal Server Error
+    produces:
+      - text/html
     """
     if request.method == 'POST':
         data = dict(request.form)
@@ -255,10 +259,15 @@ def check_credentials():
     responses:
         200:
             description: OK
+            schema:
+                type: string
+                example: Login
         400:
             description: Client Error
         500:
             description: Internal Server Error
+    produces:
+      - text/plain
     """
     try:
         result = Queries.check_rack_user(request.get_json(), cur)
@@ -296,10 +305,15 @@ def recover_change_credentials():
     responses:
         200:
             description: OK
+            schema:
+                type: string
+                example: Password changed
         400:
             description: Client Error
         500:
             description: Internal Server Error
+    produces:
+      - text/plain
     """
     try:
         request_data = request.get_json()
@@ -318,24 +332,29 @@ def recover_change_credentials():
 @application.route('/credentials/password/<string:user>')
 def recover_password(user=None):
     """
-        ---
-        summary: Recover password
-        description: Recover password of a user
-        parameters:
-          - name: User
-            in: string
-            required: true
+    ---
+    summary: Recover password
+    description: Recover password of a user
+    parameters:
+      - name: User
+        in: string
+        required: true
+        schema:
+            type: string
+            example: mariorossi
+    responses:
+        200:
+            description: OK
             schema:
                 type: string
-                example: mariorossi
-        responses:
-            200:
-                description: OK
-            400:
-                description: Client Error
-            500:
-                description: Internal Server Error
-        """
+                example: 12345678
+        400:
+            description: Client Error
+        500:
+            description: Internal Server Error
+    produces:
+      - text/plain
+    """
     if user is None:
         return 'user is required to recover password'
     result = Queries.select_user(user, cur)
@@ -363,10 +382,15 @@ def create_new_drying_clycle():
     responses:
         200:
             description: OK
+            schema:
+                type: string
+                example: 50
         400:
             description: Client Error
         500:
             description: Internal Server Error
+    produces:
+      - text/plain
     """
     request_data = request.get_json()
     result = Queries.select_user(request_data['user'], cur)
@@ -409,10 +433,15 @@ def receive_sensor_feed():
     responses:
         200:
             description: OK
+            schema:
+                type: string
+                example: 54
         400:
             description: Client Error
         500:
             description: Internal Server Error
+    produces:
+      - text/plain
     """
     return Queries.create_new_sensor_feed(request.get_json(), cur, cnx)
 
@@ -434,10 +463,15 @@ def set_drying_cycle_inactive(drying_cycle):
     responses:
         200:
             description: OK
+            schema:
+                type: string
+                example: 30
         400:
             description: Client Error
         500:
             description: Internal Server Error
+    produces:
+      - text/plain
     """
     return str(Queries.update_status_drying_cycle(drying_cycle, cnx, cur))
 
@@ -464,10 +498,15 @@ def set_drying_rack_position():
     responses:
         200:
             description: OK
+            schema:
+                type: string
+                example: Correct Operation
         400:
             description: Client Error
         500:
             description: Internal Server Error
+    produces:
+      - text/plain
     """
     return Queries.update_drying_rack_position(request.get_json(), cur, cnx)
 
@@ -489,6 +528,21 @@ def show_stats(user=None):
     responses:
         200:
             description: OK
+            schema:
+                type: object
+                properties:
+                    mean_cycle_time:
+                        type: number
+                        format: float
+                        example: 50.5
+                    normalized_cycle_time:
+                        type: number
+                        format: float
+                        exaqmple: 66.3
+                    normalized_cycle_time_temp:
+                        type: number
+                        format: float
+                        example: 57.3
         400:
             description: Client Error
         500:
@@ -529,6 +583,23 @@ def show_weather_info(user=None):
     responses:
         200:
             description: OK
+            schema:
+                type: object
+                properties:
+                    temp:
+                        type: number
+                        format: float
+                        example: 21.3
+                    rain:
+                        type: bool
+                        example: true
+                    hum:
+                        type: number
+                        format: float
+                        example: 50.2
+                    best_time:
+                        type: string
+                        example: 9:30
         400:
             description: Client Error
         500:
@@ -569,6 +640,44 @@ def display(user):
     responses:
         200:
             description: OK
+            schema:
+                type: object
+                properties:
+                    id:
+                        type: number
+                        example: 64
+                    user_name:
+                        type: string
+                        example: mariorossi
+                    sensor_time:
+                        type: string
+                        format: date-time
+                        example: 2023-02-10 11:26:59
+                    air_humidity:
+                        type: float
+                        example: 30.00
+                    air_temperature:
+                        type: float
+                        example: 19.00
+                    cloth_humidity:
+                        type: int64
+                        example: 50
+                    cloth_weight:
+                        type: int64
+                        example: 600
+                    is_raining:
+                        type: number
+                        example: 1011
+                    start_time:
+                        type: string
+                        format: date-time
+                        example: 2023-02-10 11:26:56
+                    cycle_id:
+                        type: int64
+                        example: 64
+                    is_active:
+                        type: bool
+                        example: true
         400:
             description: Client Error
         500:
@@ -622,10 +731,15 @@ def cancel_last_cycle(user):
     responses:
         200:
             description: OK
+            schema:
+                type: string
+                example: mariorossi last drying cycle deleted
         400:
             description: Client Error
         500:
             description: Internal Server Error
+    produces:
+      - text/plain
     """
     result = Queries.select_last_drying_cycle(user, cur)
     if not result:
@@ -664,10 +778,15 @@ def cancel_all(user):
     responses:
         200:
             description: OK
+            schema:
+                type: string
+                example: mariorossi deleted
         400:
             description: Client Error
         500:
             description: Internal Server Error
+    produces:
+      - text/plain
     """
     result = Queries.select_user(user, cur)
     if not result:
@@ -693,6 +812,12 @@ def build_ranking():
     responses:
         200:
             description: OK
+            schema:
+                type: array
+                example:
+                  - (42, mariorossi)
+                  - (17, lucabianchi)
+                  - (8, giacomoverdi)]
         400:
             description: Client Error
         500:
@@ -717,6 +842,26 @@ def show_user_info(user):
     responses:
         200:
             description: OK
+            schema:
+                type: object
+                properties:
+                    username:
+                        type: string
+                        example: mariorossi
+                    latitude:
+                        type: number
+                        format: float
+                        example: 40.6
+                    longitude:
+                        type: number
+                        format: float
+                        example: 10.5
+                    place:
+                        type: string
+                        example: outside
+                    active:
+                        type: bool
+                        example: true
         400:
             description: Client Error
         500:
@@ -749,11 +894,16 @@ def control_com(user):
             example: mariorossi
     responses:
         200:
-            description: OK
+            description: OKù
+            schema:
+                type: string
+                example: Outside
         400:
             description: Client Error
         500:
             description: Internal Server Error
+    produces:
+      - text/plain
     """
     result = Queries.select_state(user, cur)
     if not result:
