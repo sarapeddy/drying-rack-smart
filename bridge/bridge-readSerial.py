@@ -31,6 +31,7 @@ class Bridge:
                 'password': getpass('Insert password: ', stream=None)
             }
             r = requests.post(url=f"http://{self.config.get('Api', 'host')}/credentials", json=self.user)
+            print(r.text)
             if r.text == "Login":
                 break
 

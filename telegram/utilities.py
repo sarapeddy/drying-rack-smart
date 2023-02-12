@@ -1,7 +1,18 @@
 import requests
 import datetime
 from datetime import datetime
-API_LOCATION = 'http://localhost:80'
+from configparser import ConfigParser
+
+def api_location_config():
+    config = ConfigParser()
+    config.read('config.ini')
+    return config.get('Api', 'host')
+
+def bot_key_config():
+    config = ConfigParser()
+    config.read('config.ini')
+    return config.get('Bot', 'key')
+API_LOCATION = api_location_config()
 
 #POSSIBILI STATI DI UN UTENTE:
 UNLOGGED = 0
@@ -121,7 +132,16 @@ def get_imminent_rain(username):
     return dictionary['rain']
 
 def is_outside(username):
-    return True
+    try:
+        response = requests.get(f'{API_LOCATION}/profile/{username}')
+    except ConnectionError:
+        return True
+    try:
+        dictionary = response.json()
+    except requests.exceptions.JSONDecodeError:
+        print(response.text)
+        return True
+    return True if 'outside' in dictionary['place'] else False
 
 def set_position(username, pos):
     dictionary = {}
@@ -155,7 +175,17 @@ def get_actual_rain(username):
     return dictionary['sensor_time'], True if dictionary['is_raining'] < 300 else False
 
 def get_community(username):
-    return True
+    try:
+        response = requests.get(f'{API_LOCATION}/community/{username}')
+    except ConnectionError:
+        return False
+    response = response.text
+    if 'Inside' in response:
+        return True
+    elif 'Outside' in response:
+        return False
+    print(response)
+    return False
 
 def get_rankings(username):
     try:

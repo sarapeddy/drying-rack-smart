@@ -15,7 +15,17 @@ def is_going_to_rain(username, config):
     return 1 if dictionary['rain'] is True else 0
 
 def get_community(username, config):
-    return random.randint(0,1)
+    try:
+        response = requests.get(f"http://{config.get('Api', 'host')}/community/{username}")
+    except ConnectionError:
+        return 1
+    response = response.text
+    if 'Inside' in response:
+        return 1
+    elif 'Outside' in response:
+        return 0
+    print(response)
+    return 1
 
 def get_actual_rain(username, config):
     try:

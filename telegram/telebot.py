@@ -1,11 +1,10 @@
-from calendar import c
 import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, ContextTypes, filters
 from telegram.ext import ContextTypes, Application
 import utilities
 from utilities import UNLOGGED, NEED_PASSWORD_LOG, NEED_PASSWORD_REG, NEED_POSITION_REG, NEED_USERNAME_LOG, NEED_USERNAME_REG, LOGGED, CONFIRM_DELETION, CONFIRM_DELETION_CYCLE
-BOTKEY = '6152911022:AAHcG-1rkKjBmuv_dZw7iXGrg8jGLbPempM'
+BOTKEY = utilities.bot_key_config()
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
@@ -244,7 +243,11 @@ async def set_position(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     operation = context.args
     if len(operation) != 1:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Invalid argument: Either IN or OUT")
+        out = utilities.is_outside(user_data[c_id].username)
+        if out:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text="Your rack is currently OUTSIDE!")
+        else:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text="Your rack is currently INSIDE!")
         return
     operation = operation[0]
     if 'in' in operation.lower():
