@@ -24,8 +24,11 @@ NEED_USERNAME_LOG = 4
 NEED_PASSWORD_LOG = 5
 
 LOGGED = 6
+
 CONFIRM_DELETION = 7
 CONFIRM_DELETION_CYCLE = 8
+
+NEED_PASSWORD_CHG = 9
 
 def check_credentials(username, password):
     #Funzione di verifica credenziali in fase di login
@@ -103,6 +106,23 @@ def get_status(username):
     hum_and_t = f"-The temperature is: {dictionary['air_temperature']}, the air humidity is {dictionary['air_humidity']}% \n"
     cloth_hum = f"-The drying is {100 - dictionary['cloth_humidity']}% done" if dictionary['is_active'] == 1 else ""
     return f"{ret_string}{status}{rain}{hum_and_t}{cloth_hum}"
+
+def is_over(username):
+    try:
+        response = requests.get(f'{API_LOCATION}/rack_user/{username}')
+    except ConnectionError:
+        return 'Connection Error: API probably offline, please retry later'
+    try:
+        dictionary = response.json()
+    except requests.exceptions.JSONDecodeError:
+        print(response.text)
+        return False
+    dictionary = dictionary[0]
+    if not any(dictionary):
+        return False
+    perc = 100 - dictionary['cloth_humidity']
+    print(perc)
+    return dictionary['id'], True if perc > 75 else False
 
 def get_best_time(username):
     try:
@@ -236,3 +256,30 @@ def delete_cycle(username, message):
         return LOGGED, 'Something went wrong!'
     else:
         return LOGGED, 'Your last drying cycle was successfully deleted!'
+
+def edit_credentials(username, password):
+    try:
+        old, new = password.split(' ')
+        dictionary = {}
+        dictionary['password'] = old
+        dictionary['new_password'] = new
+        dictionary['username'] = username
+    except:
+        return LOGGED, 'invalid synthax'
+    try:
+        response = requests.put(f'{API_LOCATION}/credentials/password', json = dictionary)
+    except ConnectionError:
+        print(response.text)
+        return LOGGED, 'Connection Error: API probably offline, please retry later!'
+    response = response.text
+    if 'changed' in response:
+        return LOGGED, 'Your password has been changed successfully!'
+    if 'username' in response:
+        return LOGGED, 'wrong old password! Try again /editpass'
+    if 'least' in response:
+        return LOGGED, 'invalid new password! At least 8 characters. Try again /editpass'
+    else:
+        return LOGGED, response
+        
+        
+    

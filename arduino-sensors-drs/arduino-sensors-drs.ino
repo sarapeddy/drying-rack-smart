@@ -31,7 +31,7 @@ void set_color(bool red, bool green, bool blue){
 
 void setup(){
   Serial.begin(9600);
-  t.set(5000);
+  t.set(300000);
   
   /* SET RGB LED */
   pinMode(RED, OUTPUT);

@@ -3,7 +3,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, ContextTypes, filters
 from telegram.ext import ContextTypes, Application
 import utilities
-from utilities import UNLOGGED, NEED_PASSWORD_LOG, NEED_PASSWORD_REG, NEED_POSITION_REG, NEED_USERNAME_LOG, NEED_USERNAME_REG, LOGGED, CONFIRM_DELETION, CONFIRM_DELETION_CYCLE
+from utilities import UNLOGGED, NEED_PASSWORD_LOG, NEED_PASSWORD_REG, NEED_POSITION_REG, NEED_USERNAME_LOG, NEED_USERNAME_REG, LOGGED, CONFIRM_DELETION, CONFIRM_DELETION_CYCLE, NEED_PASSWORD_CHG
 BOTKEY = utilities.bot_key_config()
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -22,6 +22,7 @@ class user:
         self.notify_timer_weather = 0
         self.notify_timer_rain = 0
         self.notify_timer_com = 0
+        self.cycle_id = -1
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #Handler del comando /start
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Hi! I am your smart drying rack! please /login or /register to the stendApp Community!")
@@ -94,6 +95,9 @@ async def message_manager(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif user_data[c_id].status == CONFIRM_DELETION_CYCLE:
         user_data[c_id].status, response = utilities.delete_cycle(user_data[c_id].username, message)
         await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+    elif user_data[c_id].status == NEED_PASSWORD_CHG:
+        user_data[c_id].status, response = utilities.edit_credentials(user_data[c_id].username, message)
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=response)     
 
 
 #Handler del comando login       
@@ -210,6 +214,11 @@ async def callback_minute(context: ContextTypes.DEFAULT_TYPE):
                     if utilities.get_community(user_data[i].username):
                         user_data[i].notify_timer_com = 5
                         await context.bot.send_message(chat_id=i, text="Some rack users near you has taken his rack inside, maybe you should too!")
+            cycle, over = utilities.is_over(user_data[i].username)   
+            if user_data[i].cycle_id != cycle and over:
+                user_data[i].cycle_id = cycle
+                await context.bot.send_message(chat_id=i, text="Good News! Your clothes are dry enough!")
+
 
 async def set_notify(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #Handler for the /notify command
@@ -292,6 +301,17 @@ async def ranking(update: Update, context: ContextTypes.DEFAULT_TYPE):
     response = utilities.get_rankings(user_data[c_id].username)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
 
+async def update_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    c_id = update.effective_chat.id
+    if not c_id in user_data.keys():
+        user_data[c_id] = user()
+    if user_data[c_id].status != LOGGED and user_data[c_id] != NEED_PASSWORD_CHG:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="You need to login to use this command")
+        return
+    else:
+        user_data[c_id].status = NEED_PASSWORD_CHG
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Please insert your old password, then your new one: [old new]")
+
 if __name__ == '__main__':
     application = ApplicationBuilder().token(BOTKEY).build()
     start_handler = CommandHandler('start', start)
@@ -310,7 +330,8 @@ if __name__ == '__main__':
     delete_user_handler = CommandHandler('delete_user', delete_user)
     delete_cycle_handler = CommandHandler('delete_cycle', delete_cycle)
     ranking_handler = CommandHandler('ranking', ranking)
-    application.add_handlers((start_handler, register_handler,pos_handler, msg_handler, login_handler, logout_handler, stats_handler, help_handler, stats_user_handler, current_handler, forecast_handler, set_notify_handler, set_position_handler, delete_user_handler, delete_cycle_handler, ranking_handler))
+    edit_handler = CommandHandler('editpass', update_password)
+    application.add_handlers((start_handler, register_handler,pos_handler, msg_handler, login_handler, logout_handler, stats_handler, help_handler, stats_user_handler, current_handler, forecast_handler, set_notify_handler, set_position_handler, delete_user_handler, delete_cycle_handler, ranking_handler, edit_handler))
     job_queue = application.job_queue
     job_minute = job_queue.run_repeating(callback_minute, interval=120, first=30)
     application.run_polling()

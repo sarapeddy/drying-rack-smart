@@ -121,7 +121,7 @@ class Bridge:
         cur_time = time.time()
         if self.current_state == 0:
             return
-        if((cur_time - self.last_time) > 5):           
+        if((cur_time - self.last_time) > 300):           
             self.last_time = cur_time
             actual_rain = utilities.get_actual_rain(self.user['username'], self.config)
             predicted_rain = utilities.is_going_to_rain(self.user['username'], self.config) 

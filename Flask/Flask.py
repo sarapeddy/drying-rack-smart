@@ -872,7 +872,7 @@ def show_user_info(user):
         return 'Username invalid'
     if result[0][3]:
         place = 'outside'
-    else:
+    else: 
         place = 'inside'
     mydict = dict(username=result[0][0], latitude=result[0][1], longitude=result[0][2],
                   place=place, active=result[0][4])
