@@ -63,7 +63,7 @@ class Statistics:
         if len(result) == 0:
             return datediff
         datediff = datediff/len(result)
-        return abs(datediff/60/60)
+        return abs(datediff/60/60/4)
 
     def get_normalized_cycle_time_per_temp(self, user = None):
         #ritorna la durata media in secondi dei cicli di asciugatura divisi per temperatura: temp>25, 15<temp<25, temp<15 in una list
@@ -85,9 +85,9 @@ class Statistics:
                             datediff[2] = datediff[2] +((j[1] - j[0]).total_seconds())*100/abs(j[2] - j[3])
                         else:
                             datediff[1] = datediff[1] +((j[1] - j[0]).total_seconds())*100/abs(j[2] - j[3])
-        datediff[0] /=3600
-        datediff[1] /=3600
-        datediff[2] /=3600
+        datediff[0] /=14400
+        datediff[1] /=14400
+        datediff[2] /=14400
         return datediff
     def get_total_cycles_user(self, user = None):
         if user == None:
