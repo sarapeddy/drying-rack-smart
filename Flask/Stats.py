@@ -44,7 +44,8 @@ class Statistics:
             datediff = datediff +((result[k][1] - result[k][0]).total_seconds())
         if len(result) == 0:
             return datediff
-        return datediff/len(result)
+        datediff = datediff/len(result)
+        return datediff/60/60
 
     def get_normalized_mean_cycle_time(self, user = None):
         #Ritorna la durata media in secondi dei cicli di asciugatura, normalizzata alla differenza fra umidità iniziale e finale del vestito
@@ -61,7 +62,8 @@ class Statistics:
                 datediff = datediff +((result[k][1] - result[k][0]).total_seconds())*100/(i[2] - i[3])
         if len(result) == 0:
             return datediff
-        return datediff/len(result)
+        datediff = datediff/len(result)
+        return datediff/60/60
 
     def get_normalized_cycle_time_per_temp(self, user = None):
         #ritorna la durata media in secondi dei cicli di asciugatura divisi per temperatura: temp>25, 15<temp<25, temp<15 in una list
@@ -83,6 +85,9 @@ class Statistics:
                             datediff[2] = datediff[2] +((j[1] - j[0]).total_seconds())*100/abs(j[2] - j[3])
                         else:
                             datediff[1] = datediff[1] +((j[1] - j[0]).total_seconds())*100/abs(j[2] - j[3])
+        datediff[0] /=3600
+        datediff[1] /=3600
+        datediff[2] /=3600
         return datediff
     def get_total_cycles_user(self, user = None):
         if user == None:

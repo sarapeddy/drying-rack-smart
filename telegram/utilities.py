@@ -73,11 +73,11 @@ def get_stats(username = ''):
     except requests.exceptions.JSONDecodeError:
         print(response.text)
         return 'Something went wrong!'
-    global_avg = round(dictionary['mean_cycle_time'] /60 /60, 2)
-    normalized_global_avg = round(dictionary['normalized_cycle_time'] /60 /60, 2)
-    normalized_avg15 = round(dictionary['normalized_cycle_time_temp'][0] /60 /60, 2)
-    normalized_avg20 = round(dictionary['normalized_cycle_time_temp'][1] /60 /60, 2)
-    normalized_avg25 = round(dictionary['normalized_cycle_time_temp'][2] /60/60, 2)
+    global_avg = round(dictionary['mean_cycle_time'], 2)
+    normalized_global_avg = round(dictionary['normalized_cycle_time'], 2)
+    normalized_avg15 = round(dictionary['normalized_cycle_time_temp'][0], 2)
+    normalized_avg20 = round(dictionary['normalized_cycle_time_temp'][1], 2)
+    normalized_avg25 = round(dictionary['normalized_cycle_time_temp'][2], 2)
     return f"Here are the global drying time expectations:\n" \
             f"-Expected drying time (not normalized): {global_avg} hours\n" \
             f"-Expected drying time (normalized): {normalized_global_avg} hours\n"\
