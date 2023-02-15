@@ -233,7 +233,7 @@ def delete_rack(username, message):
     if 'YES' not in message:
         return LOGGED, "User deletion was NOT performed!"
     try:
-        response = requests.delete(f'{API_LOCATION}/deletion/{username}')
+        response = requests.delete(f'{API_LOCATION}/user/{username}')
     except ConnectionError:
         return False
     print(response.text)
@@ -247,7 +247,7 @@ def delete_cycle(username, message):
     if 'YES' not in message:
         return LOGGED, "Cycle deletion was NOT performed!"
     try:
-        response = requests.delete(f'{API_LOCATION}/deletion/drying_cycle/{username}')
+        response = requests.delete(f'{API_LOCATION}/user/drying_cycle/{username}')
     except ConnectionError:
         return False
     print(response.text)
