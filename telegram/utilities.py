@@ -111,15 +111,15 @@ def is_over(username):
     try:
         response = requests.get(f'{API_LOCATION}/rack_user/{username}')
     except ConnectionError:
-        return 'Connection Error: API probably offline, please retry later'
+        return -1, False
     try:
         dictionary = response.json()
     except requests.exceptions.JSONDecodeError:
         print(response.text)
-        return False
+        return -1, False
     dictionary = dictionary[0]
     if not any(dictionary):
-        return False
+        return -1, False
     perc = 100 - dictionary['cloth_humidity']
     print(perc)
     return dictionary['id'], True if perc > 75 else False

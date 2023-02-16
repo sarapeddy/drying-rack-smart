@@ -25,7 +25,7 @@ def get_community(username, config):
     elif 'Outside' in response:
         return 0
     print(response)
-    return 1
+    return 0
 
 def get_actual_rain(username, config):
     try:
