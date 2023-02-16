@@ -73,25 +73,31 @@ class Statistics:
             result = Queries.select_avg_tmp_user(user, self.cur)
             result2 = Queries.select_start_finish_time_hum_user(user, self.cur)  
         datediff = [0, 0, 0]
-        k = 0
+        k = [0, 0, 0]
         for i in result:
             for j in result2:
                 if i[1] == j[4]:
                     if(j[2] != j[3]):
                         if i[0] < 15:
                             datediff[0] = datediff[0] +((j[1] - j[0]).total_seconds())*100/abs(j[2] - j[3])
+                            k[0] +=1
                         elif i[0] > 25:
                             datediff[2] = datediff[2] +((j[1] - j[0]).total_seconds())*100/abs(j[2] - j[3])
+                            k[2] +=1
                         else:
                             datediff[1] = datediff[1] +((j[1] - j[0]).total_seconds())*100/abs(j[2] - j[3])
-        datediff[0] /=14400
-        datediff[1] /=14400
-        datediff[2] /=14400
+                            k[1] +=1
+        datediff[0] /=28800
+        datediff[1] /=28800
+        datediff[2] /=28800
         if len(result) == 0:
             return datediff
-        datediff[0] /=len(result)
-        datediff[1] /=len(result)
-        datediff[2] /=len(result)
+        if k[0] != 0:
+            datediff[0] /=k[0]
+        if k[1] != 0:
+            datediff[1] /=k[1]
+        if k[2] != 0:
+            datediff[2] /=k[2]
         return datediff
     def get_total_cycles_user(self, user = None):
         if user == None:
