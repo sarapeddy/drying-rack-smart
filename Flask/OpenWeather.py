@@ -31,7 +31,6 @@ class OpenWeather:
         return drying_coefficients.index(max(drying_coefficients))
 '''
 if __name__ == '__main__':
-    ow = OpenWeather('2be3598cfb1963158f213a238e5c272e')
     print(ow.is_going_to_rain_in_3h(47.558, 7.573))
     print(ow.get_best_moment(55.639060, 12.401471))
 '''
