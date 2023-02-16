@@ -19,7 +19,6 @@ def testdb():
         cur = cnx.cursor()
         cur.execute('select * from rack_user')
         result = cur.fetchall()
-        print(result)
         return '<h1>Smart Drying-Rack<h1>'
     except Exception as e:
         cnx.close()
@@ -39,9 +38,9 @@ class Statistics:
             result = Queries.select_start_finish_time_user(user, self.cur)
         datediff = 0
         k = 0
-        print(result)
         for i in result:
             datediff = datediff +((result[k][1] - result[k][0]).total_seconds())
+            k=k+1
         if len(result) == 0:
             return datediff
         datediff = datediff/len(result)
@@ -56,10 +55,10 @@ class Statistics:
             result = Queries.select_start_finish_time_hum_user(user, self.cur)
         datediff = 0
         k = 0
-        print(result)
         for i in result:
             if i[2] != i[3]:
                 datediff = datediff +((result[k][1] - result[k][0]).total_seconds())*100/abs(i[2] - i[3])
+            k=k+1
         if len(result) == 0:
             return datediff
         datediff = datediff/len(result)
@@ -88,6 +87,11 @@ class Statistics:
         datediff[0] /=14400
         datediff[1] /=14400
         datediff[2] /=14400
+        if len(result) == 0:
+            return datediff
+        datediff[0] /=len(result)
+        datediff[1] /=len(result)
+        datediff[2] /=len(result)
         return datediff
     def get_total_cycles_user(self, user = None):
         if user == None:
@@ -99,7 +103,7 @@ class Statistics:
 if __name__ == '__main__':
     testdb()
     s = Statistics(cur)
-    print(s.get_mean_cycle_time_user('bucci23'))
+    print(s.get_mean_cycle_time_user('mariorossi'))
     print(s.get_normalized_mean_cycle_time())
     print(s.get_normalized_cycle_time_per_temp())
 '''
